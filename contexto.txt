@@ -1,0 +1,367 @@
+pass supabase l8Zj9xAWt1CN3aak
+
+TRAFKINTU (MVP escalable, arquitectura + patrones)
+
+Construye una app web llamada TRAFKINTU (marketplace de emprendimientos/pymes en Chile) usando Next.js 14+ App Router, TypeScript, TailwindCSS y shadcn/ui. El objetivo es entregar un MVP frontend escalable con arquitectura limpia, patrones correctos y componentes reutilizables, usando datos mock por ahora, pero dejando todo preparado para conectar Supabase más adelante sin retrabajo.
+
+0) Principios obligatorios (no negociables)
+
+Separación de responsabilidades: UI / domain / data
+
+Arquitectura por features (vertical slices), no por tipo (no un /components gigante sin orden)
+
+Patrón Repository + Service para acceso a datos (mock hoy, Supabase mañana)
+
+Patrón Container/Presentational: páginas/containers orquestan, componentes presentacionales son puros
+
+DTOs y tipos: entidades del dominio tipadas, sin any
+
+Escalabilidad: rutas, componentes, hooks y layout preparados para crecer (pagos, SII, reviews, geolocalización después)
+
+Accesibilidad básica: labels, focus states, botones, links correctos
+
+1) Stack y librerías
+
+Next.js App Router /app
+
+TypeScript
+
+TailwindCSS
+
+shadcn/ui (Button, Card, Input, Badge, Tabs, Dialog, DropdownMenu, Select, Textarea, Avatar, Separator, Skeleton, Toast/Sonner)
+
+lucide-react
+
+NO backend real por ahora: usar mocks e in-memory store (o simple state) detrás de repositorios.
+
+2) Estructura de carpetas requerida (solicitar exactamente esto)
+
+Implementar estructura:
+
+src/
+  app/
+    (marketing)/
+      page.tsx
+    explore/
+      page.tsx
+    listing/[id]/
+      page.tsx
+    pyme/[id]/
+      page.tsx
+    auth/
+      page.tsx
+    dashboard/
+      page.tsx
+    admin/
+      page.tsx
+    layout.tsx
+    globals.css
+
+  features/
+    auth/
+      components/
+      hooks/
+      services/
+      types.ts
+    marketplace/
+      components/
+      hooks/
+      services/
+      types.ts
+    pymes/
+      components/
+      hooks/
+      services/
+      types.ts
+    admin/
+      components/
+      hooks/
+      services/
+      types.ts
+
+  shared/
+    ui/            (wrappers shadcn si es necesario)
+    components/    (SearchBar, EmptyState, PageHeader, etc.)
+    hooks/
+    lib/           (utils, formatters, rut validation, constants)
+    styles/
+
+  domain/
+    entities/      (Category, Pyme, Listing)
+    value-objects/ (RUT, Money/Price)
+    ports/         (interfaces repos)
+    services/      (ranking, search)
+  
+  data/
+    repositories/  (mock repos implementing ports)
+    mock/          (seed data)
+
+
+Nota: si v0 no puede crear tantas carpetas, igual debe mantener el concepto: domain + ports + data + features + shared.
+
+3) Patrones de diseño obligatorios (aplícalos en el código)
+3.1 Repository Pattern
+
+Definir interfaces en domain/ports:
+
+AuthRepository
+
+MarketplaceRepository
+
+PymeRepository
+
+AdminRepository
+
+Implementación mock en data/repositories/*MockRepository.ts usando seed data en data/mock/seed.ts.
+
+3.2 Service Layer
+
+Crear servicios puros:
+
+domain/services/rankingService.ts (destacados primero, luego fecha)
+
+domain/services/searchService.ts (filtrado por title/desc/cat/pyme)
+
+features/*/services/*Service.ts (casos de uso: createListing, toggleActive, requestFeatured)
+
+3.3 Container/Presentational
+
+Pages como containers: obtienen data vía hooks/services y pasan props
+
+Componentes como ListingCard, PymeHeader, ListingGallery sin lógica de fetch
+
+3.4 State Management (simple pero escalable)
+
+Usar un Provider liviano por módulo (Context + reducer) o un store simple (sin librerías extra) para:
+
+session/auth mock
+
+marketplace listings
+
+featured requests
+
+Debe estar encapsulado dentro de features (no global sin orden).
+
+4) Tipos y entidades (definir estrictamente)
+4.1 Domain Entities
+
+Category { id, name, slug }
+
+Pyme { id, ownerId, name, description, whatsapp?, email, phone, address?, hours, fulfillment, avatarUrl? }
+
+Listing { id, pymeId, type, categoryId, title, description, price, isActive, isFeatured, createdAt, images[] }
+
+4.2 Value Objects
+
+RUT con validación (módulo 11 simplificado aceptable, pero con API clara)
+
+Price:
+
+kind: fixed | from | quote
+
+amount?: number
+Funciones en shared/lib/format.ts para formatear CLP.
+
+5) UX/UI (estándares)
+
+Diseño marketplace moderno, mobile-first
+
+Componentes reutilizables: SearchBar, CategoryChips, ListingCard, EmptyState, SectionHeader, PageShell
+
+Skeleton loaders con shadcn/ui/Skeleton
+
+Empty states con CTA y sugerencias
+
+Copy en español neutro (Chile), sin modismos fuertes
+
+6) Rutas y páginas requeridas
+/ Home
+
+Secciones:
+
+Destacados (isFeatured=true, carrusel horizontal en mobile, grid en desktop)
+
+Últimas publicaciones (isActive=true, recientes)
+
+Chips de categorías que navegan a /explore?cat=slug
+
+Cada card:
+
+imagen
+
+badge “Destacado”
+
+título
+
+categoría
+
+precio
+
+nombre pyme
+
+CTA “Ver”
+
+/explore
+
+Search input
+
+Filters: categoría (Select), tipo (Tabs: Todos/Productos/Servicios)
+
+Orden: destacados primero, luego fecha desc
+
+Contador de resultados
+
+La búsqueda debe buscar por:
+
+listing.title
+
+listing.description
+
+category.name
+
+pyme.name
+
+/listing/[id] Detalle publicación
+
+Galería (thumbnails o carousel simple)
+
+Título + badge destacado
+
+precio formateado
+
+categoría + tipo
+
+descripción
+
+Card de pyme (avatar, nombre, resumen) link a /pyme/[id]
+
+Botones:
+
+WhatsApp https://wa.me/... con mensaje prellenado
+
+Email mailto:
+
+Copiar teléfono
+
+Aviso: “TRAFKINTU conecta, trato directo con la pyme”
+
+/pyme/[id] Perfil pyme
+
+header con info (horarios, modalidad)
+
+botones de contacto
+
+catálogo (grid)
+
+filtros: Todos / Productos / Servicios
+
+/auth
+
+Tabs: Ingresar / Registrarse
+
+Registro:
+
+Email + Password
+
+Selector: Usuario o Pyme
+
+Usuario: RUT + nombre visible
+
+Pyme: RUT + nombre pyme
+
+Validación RUT y mensajes de error
+
+Al registrarse:
+
+user => /
+
+pyme => /dashboard
+
+/dashboard Panel Pyme
+
+Solo role=pyme (si no, acceso restringido)
+Secciones:
+
+Resumen: #publicaciones, #activas, #destacadas
+
+Listado con acciones:
+
+Crear
+
+Editar
+
+Activar/desactivar
+
+Solicitar destacado
+
+Dialog Create/Edit:
+
+title, type, category, price kind, price amount, description
+
+imágenes (mock urls/placeholders)
+
+Dialog “Quiero destacar” con instrucciones de pago manual
+
+/admin
+
+Solo role=admin (mock)
+
+Lista de solicitudes destacado
+
+Botón aprobar => isFeatured=true
+
+Rechazar => isFeatured=false
+
+Moderación: activar/desactivar publicaciones
+
+7) Datos mock y seed
+
+Crear seed realista:
+
+8 pymes
+
+25 listings
+
+variedad de categorías y tipos
+
+varios isFeatured=true
+
+distintas combinaciones de price kind (fixed/from/quote)
+
+8) Preparación para Supabase (sin implementarlo aún)
+
+Dejar puntos de extensión:
+
+data/repositories/*MockRepository.ts debe poder ser reemplazado por *SupabaseRepository.ts sin tocar UI
+
+En domain/ports/* definir contratos estables
+
+En shared/lib/env.ts dejar placeholders:
+
+NEXT_PUBLIC_SUPABASE_URL
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+9) Entregable
+
+Generar el proyecto completo con:
+
+compilación correcta
+
+navegación funcional
+
+componentes reutilizables
+
+arquitectura y patrones implementados
+
+datos mock y lógica de ranking/búsqueda centralizados en domain/services
+Actualizaci�n 2025-12-21:
+- C�digo movido a src/ (src/app, src/domain, src/data, src/features, src/shared, src/components, src/styles). Alias tsconfig @/* -> ./src/*.
+- Repos mock sincronizados con store en memoria. Fallbacks a seeds en getListingById/getPymeById para evitar 404 cuando el store est� vac�o.
+- Guardias de rol con middleware: /dashboard requiere rol pyme, /admin rol admin, /profile requiere login. AuthMockRepository set/clear cookies trafkintu_role y trafkintu_pyme en login/logout/register.
+- ESLint configurado (eslint + eslint-config-next, eslint.config.mjs).
+- Copys en espa�ol corregidos; perfil y detalle de listing con params async arreglados (Next params como Promise).
+- next/image usado en perfil y perfil p�blico (se eliminaron warnings de lint).
+- Rutas din�micas listing/pyme marcadas dynamic='force-dynamic' para render en runtime.
+- Estado actual: lint OK; build compila (EPIPE ocasional del entorno).
+
