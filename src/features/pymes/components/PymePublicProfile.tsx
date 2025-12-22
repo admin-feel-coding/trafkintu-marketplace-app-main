@@ -57,7 +57,7 @@ export function PymePublicProfile({ pyme, listings, categories, allPymes }: Pyme
   return (
     <div>
       {/* Banner */}
-      <div className="relative h-64 md:h-80 bg-gradient-to-br from-accent to-accent-foreground/20 overflow-hidden">
+      <div className="relative h-40 sm:h-56 md:h-72 lg:h-80 bg-gradient-to-br from-accent to-accent-foreground/20 overflow-hidden">
         {pyme.bannerUrl ? (
           <Image
             src={pyme.bannerUrl || "/placeholder.svg"}
@@ -68,9 +68,9 @@ export function PymePublicProfile({ pyme, listings, categories, allPymes }: Pyme
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center text-white">
-              <h1 className="text-4xl font-bold mb-2">{pyme.name}</h1>
-              <p className="text-xl opacity-90">{pyme.description}</p>
+            <div className="text-center text-white px-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{pyme.name}</h1>
+              <p className="text-base sm:text-lg md:text-xl opacity-90">{pyme.description}</p>
             </div>
           </div>
         )}
@@ -82,14 +82,14 @@ export function PymePublicProfile({ pyme, listings, categories, allPymes }: Pyme
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Logo */}
-              <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 border-4 border-background shadow-lg">
                 {pyme.avatarUrl && <AvatarImage src={pyme.avatarUrl || "/placeholder.svg"} alt={pyme.name} />}
-                <AvatarFallback className="text-4xl">{pyme.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="text-2xl sm:text-3xl md:text-4xl">{pyme.name.charAt(0)}</AvatarFallback>
               </Avatar>
 
               {/* Info */}
               <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2">{pyme.name}</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 md:mb-2">{pyme.name}</h1>
                 <p className="text-muted-foreground mb-4">{pyme.description}</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -137,9 +137,9 @@ export function PymePublicProfile({ pyme, listings, categories, allPymes }: Pyme
         </Card>
 
         {/* Main content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {/* Listings */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Search + Filter */}
             <div className="flex flex-col gap-3">
               <div className="relative">
@@ -163,7 +163,7 @@ export function PymePublicProfile({ pyme, listings, categories, allPymes }: Pyme
 
             {/* Listings Grid */}
             {filteredListings.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 {filteredListings.map((listing) => {
                   const category = categories.find((c) => c.id === listing.categoryId)
                   const listingPyme = allPymes.find((p) => p.id === listing.pymeId)
@@ -181,7 +181,7 @@ export function PymePublicProfile({ pyme, listings, categories, allPymes }: Pyme
 
           {/* Contact Form */}
           <div>
-            <div className="sticky top-24">
+            <div className="lg:sticky lg:top-24">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

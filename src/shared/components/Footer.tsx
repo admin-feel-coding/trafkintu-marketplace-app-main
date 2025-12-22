@@ -3,9 +3,9 @@ import { Store } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/50 mt-16">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="border-t bg-muted/50 mt-12 md:mt-16 mb-20 md:mb-0">
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
           <div>
             <Link href="/" className="flex items-center gap-2 font-bold text-lg mb-4">
               <Store className="h-5 w-5 text-primary" />

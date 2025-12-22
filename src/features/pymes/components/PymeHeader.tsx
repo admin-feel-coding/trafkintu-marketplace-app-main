@@ -15,14 +15,14 @@ export function PymeHeader({ pyme }: PymeHeaderProps) {
   }
 
   return (
-    <div className="flex items-start gap-4 mb-6">
-      <Avatar className="h-20 w-20">
+    <div className="flex items-start gap-3 md:gap-4 mb-4 md:mb-6">
+      <Avatar className="h-14 w-14 md:h-20 md:w-20">
         {pyme.avatarUrl && <AvatarImage src={pyme.avatarUrl || "/placeholder.svg"} alt={pyme.name} />}
-        <AvatarFallback className="text-2xl">{pyme.name.charAt(0)}</AvatarFallback>
+        <AvatarFallback className="text-lg md:text-2xl">{pyme.name.charAt(0)}</AvatarFallback>
       </Avatar>
 
       <div className="flex-1">
-        <h1 className="text-3xl font-bold mb-2">{pyme.name}</h1>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 md:mb-2">{pyme.name}</h1>
         <p className="text-muted-foreground mb-3">{pyme.description}</p>
 
         <div className="flex flex-wrap gap-3 text-sm">

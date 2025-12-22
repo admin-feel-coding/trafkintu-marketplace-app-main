@@ -72,7 +72,7 @@ export function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
       <div className="space-y-2">
         <Label htmlFor="register-role">Tipo de cuenta</Label>
         <Select value={role} onValueChange={(v) => setRole(v as "user" | "pyme")}>

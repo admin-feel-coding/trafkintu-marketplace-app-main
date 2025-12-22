@@ -80,7 +80,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, categories, onS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{listing ? "Editar publicación" : "Crear publicación"}</DialogTitle>
           <DialogDescription>
@@ -99,7 +99,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, categories, onS
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Tipo</Label>
               <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v as any })}>
@@ -141,7 +141,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, categories, onS
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="priceKind">Tipo de precio</Label>
               <Select
@@ -185,7 +185,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, categories, onS
             <p className="text-xs text-muted-foreground">Por ahora solo se admite una imagen</p>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
               Cancelar
             </Button>

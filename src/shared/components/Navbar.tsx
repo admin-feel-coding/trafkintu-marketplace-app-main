@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Store, Menu, UserIcon, LogOut } from "lucide-react"
+import { Store, UserIcon, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -102,27 +102,7 @@ export function Navbar() {
             </DropdownMenu>
           )}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Menú</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href="/">Inicio</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/explore">Explorar</Link>
-              </DropdownMenuItem>
-              {!user && (
-                <DropdownMenuItem asChild>
-                  <Link href="/auth">Ingresar</Link>
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+{/* Mobile hamburger menu removed - using BottomNav instead */}
         </div>
       </div>
     </header>

@@ -26,12 +26,12 @@ export function ListingGallery({ images, title }: ListingGalleryProps) {
       </div>
 
       {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 md:gap-3">
           {images.map((image, index) => (
             <button
               key={index}
               onClick={() => setSelectedImage(index)}
-              className={`relative aspect-square rounded-md overflow-hidden border-2 transition-all ${
+              className={`relative aspect-square rounded-md overflow-hidden border-2 min-h-[60px] transition-all touch-active ${
                 selectedImage === index ? "border-primary" : "border-transparent hover:border-muted-foreground/50"
               }`}
             >

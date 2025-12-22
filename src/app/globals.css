@@ -149,3 +149,62 @@
 body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
+
+/* Mobile-first utilities */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --bottom-nav-height: 64px;
+}
+
+/* Bottom nav spacing on mobile */
+@media (max-width: 767px) {
+  main {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-inset-bottom));
+  }
+}
+
+@layer utilities {
+  /* Touch-friendly minimum sizes */
+  .min-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Mobile-optimized gap */
+  .gap-mobile {
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .gap-mobile {
+      gap: 1.5rem;
+    }
+  }
+
+  /* Hide on mobile, show on desktop */
+  .desktop-only {
+    @apply hidden md:block;
+  }
+
+  /* Show on mobile, hide on desktop */
+  .mobile-only {
+    @apply block md:hidden;
+  }
+
+  /* Safe area padding utilities */
+  .pb-safe {
+    padding-bottom: var(--safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: var(--safe-area-inset-top);
+  }
+
+  /* Touch-friendly active states */
+  .touch-active:active {
+    @apply scale-[0.98] transition-transform duration-75;
+  }
+}

@@ -9,9 +9,9 @@ export default function AuthPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen flex items-center justify-center py-12">
+      <main className="min-h-screen flex items-center justify-center py-6 md:py-12">
         <div className="container mx-auto px-4">
-          <div className="max-w-md mx-auto">
+          <div className="w-full max-w-md mx-auto">
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login">Ingresar</TabsTrigger>

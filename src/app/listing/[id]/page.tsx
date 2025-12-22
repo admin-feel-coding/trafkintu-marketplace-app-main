@@ -43,8 +43,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     <>
       <Navbar />
       <main className="min-h-screen">
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="container mx-auto px-4 py-4 md:py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
             {/* Gallery */}
             <div>
               <ListingGallery images={listing.images} title={listing.title} />
@@ -66,8 +66,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   </Badge>
                 </div>
 
-                <h1 className="text-4xl font-bold mb-4 text-balance">{listing.title}</h1>
-                <p className="text-3xl font-bold text-primary mb-4">{formatPriceDisplay(listing.price)}</p>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-balance">{listing.title}</h1>
+                <p className="text-2xl md:text-3xl font-bold text-primary mb-3 md:mb-4">{formatPriceDisplay(listing.price)}</p>
               </div>
 
               <Separator />
@@ -102,9 +102,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           </div>
 
           {/* PYME Card with CTA */}
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Publicado por</h2>
+          <div className="mt-8 md:mt-12">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+              <h2 className="text-xl md:text-2xl font-bold">Publicado por</h2>
               <Button asChild>
                 <Link href={`/pyme/${pyme.id}`}>
                   <Store className="h-4 w-4 mr-2" />
