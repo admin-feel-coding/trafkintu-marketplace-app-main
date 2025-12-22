@@ -1,17 +1,15 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { AlertCircle, Star, Store } from "lucide-react"
+import { AlertCircle, ChevronRight, Star } from "lucide-react"
 
 import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
 import { pymeMockRepository } from "@/data/repositories/PymeMockRepository"
 import { mockListings } from "@/data/mock/seed"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ContactButtons } from "@/features/marketplace/components/ContactButtons"
 import { ListingGallery } from "@/features/marketplace/components/ListingGallery"
-import { PymeCard } from "@/features/pymes/components/PymeCard"
 import { formatPriceDisplay } from "@/lib/format"
 import { Footer } from "@/shared/components/Footer"
 import { Navbar } from "@/shared/components/Navbar"
@@ -53,7 +51,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             {/* Details */}
             <div className="space-y-6">
               <div>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
                   {listing.isFeatured && (
                     <Badge className="bg-primary text-primary-foreground">
                       <Star className="h-3 w-3 mr-1 fill-current" />
@@ -67,7 +65,20 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 </div>
 
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-balance">{listing.title}</h1>
-                <p className="text-2xl md:text-3xl font-bold text-primary mb-3 md:mb-4">{formatPriceDisplay(listing.price)}</p>
+                <p className="text-2xl md:text-3xl font-bold text-primary mb-4">{formatPriceDisplay(listing.price)}</p>
+
+                {/* PYME link */}
+                <Link href={`/pyme/${pyme.id}`} className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+                  <div className="h-8 w-8 rounded-full bg-muted overflow-hidden flex-shrink-0">
+                    {pyme.avatarUrl ? (
+                      <img src={pyme.avatarUrl} alt={pyme.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="h-full w-full flex items-center justify-center text-sm font-medium">{pyme.name.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="text-sm font-medium">{pyme.name}</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
               </div>
 
               <Separator />
@@ -98,22 +109,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   </div>
                 </CardHeader>
               </Card>
-            </div>
-          </div>
-
-          {/* PYME Card with CTA */}
-          <div className="mt-8 md:mt-12">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-              <h2 className="text-xl md:text-2xl font-bold">Publicado por</h2>
-              <Button asChild>
-                <Link href={`/pyme/${pyme.id}`}>
-                  <Store className="h-4 w-4 mr-2" />
-                  Ver tienda completa
-                </Link>
-              </Button>
-            </div>
-            <div className="max-w-md">
-              <PymeCard pyme={pyme} />
             </div>
           </div>
         </div>
