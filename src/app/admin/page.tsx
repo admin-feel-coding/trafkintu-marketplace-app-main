@@ -6,10 +6,16 @@ import { toast } from "sonner"
 
 import type { Category } from "@/domain/entities/Category"
 import type { Listing } from "@/domain/entities/Listing"
+import type { Pyme } from "@/domain/entities/Pyme"
 import type { FeaturedRequest } from "@/domain/ports/AdminRepository"
-import { adminMockRepository } from "@/data/repositories/AdminMockRepository"
-import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
-import { mockPymes } from "@/data/mock/seed"
+import { marketplaceRepository } from "@/data/repositories/marketplace"
+import { getAllPymesAction } from "@/features/pymes/actions/pymeActions"
+import {
+  getFeaturedRequestsAction,
+  approveFeaturedRequestAction,
+  rejectFeaturedRequestAction,
+  toggleListingActiveAction,
+} from "@/features/admin/actions/adminActions"
 import { Toaster } from "@/components/ui/sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdminStats } from "@/features/admin/components/AdminStats"
@@ -27,6 +33,7 @@ export default function AdminPage() {
   const [requests, setRequests] = useState<FeaturedRequest[]>([])
   const [listings, setListings] = useState<Listing[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [pymes, setPymes] = useState<Pyme[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -41,15 +48,17 @@ export default function AdminPage() {
     async function loadData() {
       setIsLoading(true)
       try {
-        const [loadedRequests, loadedListings, loadedCategories] = await Promise.all([
-          adminMockRepository.getFeaturedRequests(),
-          marketplaceMockRepository.getListings(),
-          marketplaceMockRepository.getCategories(),
+        const [loadedRequests, loadedListings, loadedCategories, loadedPymes] = await Promise.all([
+          getFeaturedRequestsAction(),
+          marketplaceRepository.getListings(),
+          marketplaceRepository.getCategories(),
+          getAllPymesAction(),
         ])
 
         setRequests(loadedRequests)
         setListings(loadedListings)
         setCategories(loadedCategories)
+        setPymes(loadedPymes)
       } finally {
         setIsLoading(false)
       }
@@ -62,7 +71,7 @@ export default function AdminPage() {
 
   const handleApproveRequest = async (requestId: string) => {
     try {
-      await adminMockRepository.approveFeaturedRequest(requestId)
+      await approveFeaturedRequestAction(requestId)
 
       setRequests(requests.map((r) => (r.id === requestId ? { ...r, status: "approved" as const } : r)))
 
@@ -80,7 +89,7 @@ export default function AdminPage() {
 
   const handleRejectRequest = async (requestId: string) => {
     try {
-      await adminMockRepository.rejectFeaturedRequest(requestId)
+      await rejectFeaturedRequestAction(requestId)
       setRequests(requests.map((r) => (r.id === requestId ? { ...r, status: "rejected" as const } : r)))
       toast.success("Solicitud rechazada")
     } catch (error) {
@@ -91,7 +100,7 @@ export default function AdminPage() {
 
   const handleToggleListingActive = async (listingId: string) => {
     try {
-      await adminMockRepository.toggleListingActive(listingId)
+      await toggleListingActiveAction(listingId)
       setListings(listings.map((l) => (l.id === listingId ? { ...l, isActive: !l.isActive } : l)))
       toast.success("Estado actualizado")
     } catch (error) {
@@ -118,7 +127,7 @@ export default function AdminPage() {
 
   const stats = {
     totalListings: listings.length,
-    totalPymes: mockPymes.length,
+    totalPymes: pymes.length,
     featuredListings: listings.filter((l) => l.isFeatured).length,
     pendingRequests: requests.filter((r) => r.status === "pending").length,
   }
@@ -144,7 +153,7 @@ export default function AdminPage() {
                 <FeaturedRequestsTable
                   requests={requests}
                   listings={listings}
-                  pymes={mockPymes}
+                  pymes={pymes}
                   onApprove={handleApproveRequest}
                   onReject={handleRejectRequest}
                 />
@@ -155,7 +164,7 @@ export default function AdminPage() {
                 <ModerationTable
                   listings={listings}
                   categories={categories}
-                  pymes={mockPymes}
+                  pymes={pymes}
                   onToggleActive={handleToggleListingActive}
                 />
               </TabsContent>

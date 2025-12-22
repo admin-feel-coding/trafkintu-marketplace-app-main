@@ -10,11 +10,11 @@ export function mapListing(row: any): Listing {
       ? safeParseArray(rawImages)
       : []
 
-  const rawPrice = row.price
-  const price =
-    rawPrice && typeof rawPrice === "string"
-      ? safeParseJSON(rawPrice)
-      : rawPrice
+  // Price is stored in separate columns: price_kind and price_amount
+  const price = {
+    kind: row.price_kind as "fixed" | "from" | "quote",
+    amount: row.price_amount ? Number(row.price_amount) : undefined,
+  }
 
   return {
     id: row.id,
@@ -23,7 +23,7 @@ export function mapListing(row: any): Listing {
     categoryId: row.category_id,
     title: row.title,
     description: row.description,
-    price: price,
+    price,
     isActive: row.is_active,
     isFeatured: row.is_featured,
     createdAt: new Date(row.created_at),

@@ -1,8 +1,8 @@
-import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
+import { marketplaceRepository } from "@/data/repositories/marketplace"
 import { rankListings } from "@/domain/services/rankingService"
 
 export async function getFeaturedListings() {
-  const listings = await marketplaceMockRepository.getListings({
+  const listings = await marketplaceRepository.getListings({
     isActive: true,
     isFeatured: true,
   })
@@ -10,7 +10,7 @@ export async function getFeaturedListings() {
 }
 
 export async function getRecentListings(limit?: number) {
-  const listings = await marketplaceMockRepository.getListings({ isActive: true })
+  const listings = await marketplaceRepository.getListings({ isActive: true })
   const ranked = rankListings(listings)
   return limit ? ranked.slice(0, limit) : ranked
 }

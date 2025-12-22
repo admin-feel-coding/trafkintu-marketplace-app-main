@@ -2,9 +2,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { AlertCircle, ChevronRight, Star } from "lucide-react"
 
-import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
-import { pymeMockRepository } from "@/data/repositories/PymeMockRepository"
-import { mockListings } from "@/data/mock/seed"
+import { marketplaceRepository } from "@/data/repositories/marketplace"
+import { getPymeByIdAction } from "@/features/pymes/actions/pymeActions"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -20,15 +19,15 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     notFound()
   }
 
-  const listing = (await marketplaceMockRepository.getListingById(id)) || mockListings.find((l) => l.id === id)
+  const listing = await marketplaceRepository.getListingById(id)
 
   if (!listing) {
     notFound()
   }
 
   const [pyme, categories] = await Promise.all([
-    pymeMockRepository.getPymeById(listing.pymeId),
-    marketplaceMockRepository.getCategories(),
+    getPymeByIdAction(listing.pymeId),
+    marketplaceRepository.getCategories(),
   ])
 
   if (!pyme) {
@@ -73,10 +72,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     {pyme.avatarUrl ? (
                       <img src={pyme.avatarUrl} alt={pyme.name} className="h-full w-full object-cover" />
                     ) : (
-                      <span className="h-full w-full flex items-center justify-center text-sm font-medium">{pyme.name.charAt(0)}</span>
+                      <span className="h-full w-full flex items-center justify-center text-sm font-medium">{pyme.name?.charAt(0) || "P"}</span>
                     )}
                   </div>
-                  <span className="text-sm font-medium">{pyme.name}</span>
+                  <span className="text-sm font-medium">{pyme.name || "PYME"}</span>
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>

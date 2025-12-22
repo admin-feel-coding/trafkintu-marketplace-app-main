@@ -9,7 +9,7 @@ import { toast } from "sonner"
 import type { Category } from "@/domain/entities/Category"
 import type { Listing } from "@/domain/entities/Listing"
 import type { Pyme } from "@/domain/entities/Pyme"
-import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
+import { marketplaceRepository } from "@/data/repositories/marketplace"
 import { getMyListingsAction } from "@/features/pymes/actions/listingActions"
 import { getPymeByIdAction, updatePymeAction } from "@/features/pymes/actions/pymeActions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Footer } from "@/shared/components/Footer"
 import { Navbar } from "@/shared/components/Navbar"
+import { SingleImageUploader } from "@/shared/components/SingleImageUploader"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 
 const fulfillmentLabels: Record<Pyme["fulfillment"], string> = {
@@ -85,7 +86,7 @@ export default function ProfilePage() {
         const [pymeData, myListings, loadedCategories] = await Promise.all([
           getPymeByIdAction(user.pymeId),
           getMyListingsAction(user.pymeId),
-          marketplaceMockRepository.getCategories(),
+          marketplaceRepository.getCategories(),
         ])
 
         if (pymeData) {
@@ -93,7 +94,7 @@ export default function ProfilePage() {
           setFormData({
             name: pymeData.name,
             description: pymeData.description || "",
-            email: pymeData.email,
+            email: pymeData.email || user.email,
             phone: pymeData.phone,
             whatsapp: pymeData.whatsapp || "",
             address: pymeData.address || "",
@@ -132,7 +133,7 @@ export default function ProfilePage() {
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-4 md:py-8">
         <div className="max-w-6xl mx-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "profile" | "posts" | "settings")} className="space-y-6">
             <TabsList
               className="grid w-full max-w-md mx-auto"
               style={{ gridTemplateColumns: user?.role === "pyme" ? "repeat(3, 1fr)" : "1fr" }}
@@ -179,62 +180,84 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Info Card */}
-                  <Card className="-mt-16 relative z-10">
-                    <CardContent className="pt-6">
-                      <div className="flex flex-col md:flex-row gap-6">
-                        <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-background shadow-lg">
-                          {pyme.avatarUrl && <AvatarImage src={pyme.avatarUrl || "/placeholder.svg"} alt={pyme.name} />}
-                          <AvatarFallback className="text-xl md:text-3xl">{pyme.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
-                            <h1 className="text-2xl font-bold">{pyme.name}</h1>
-                            <Button variant="outline" size="sm" onClick={() => router.push(`/pyme/${pyme.id}`)}>
-                              Ver perfil público
-                            </Button>
+                  <Card className="-mt-8 sm:-mt-12 mx-4 relative z-10">
+                    <CardContent className="pt-4 sm:pt-6">
+                      <div className="flex flex-col gap-4">
+                        {/* Header with avatar and name */}
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-lg flex-shrink-0">
+                            {pyme.avatarUrl && <AvatarImage src={pyme.avatarUrl} alt={pyme.name} />}
+                            <AvatarFallback className="text-xl sm:text-2xl">
+                              {pyme.name ? pyme.name.charAt(0).toUpperCase() : "P"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h1 className="text-xl sm:text-2xl font-bold truncate">
+                              {pyme.name || "Mi Negocio"}
+                            </h1>
+                            {pyme.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">{pyme.description}</p>
+                            )}
                           </div>
-                          <p className="text-muted-foreground mb-4">{pyme.description}</p>
+                        </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                            {pyme.address && (
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                <MapPin className="h-4 w-4 flex-shrink-0" />
-                                <span>{pyme.address}</span>
-                              </div>
-                            )}
+                        {/* Action button */}
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => router.push(`/pyme/${pyme.id}`)}>
+                          Ver perfil público
+                        </Button>
 
-                            {pyme.hours && (
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                <Clock className="h-4 w-4 flex-shrink-0" />
-                                <span>{pyme.hours}</span>
-                              </div>
-                            )}
-
+                        {/* Contact info */}
+                        <div className="grid grid-cols-1 gap-2 text-sm border-t pt-4">
+                          {pyme.phone && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <Phone className="h-4 w-4 flex-shrink-0" />
                               <span>{pyme.phone}</span>
                             </div>
+                          )}
 
+                          {pyme.email && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <Mail className="h-4 w-4 flex-shrink-0" />
-                              <span>{pyme.email}</span>
+                              <span className="truncate">{pyme.email}</span>
                             </div>
+                          )}
 
-                            {pyme.website && (
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                <Globe className="h-4 w-4 flex-shrink-0" />
-                                <a href={pyme.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                                  {pyme.website.replace(/^https?:\/\//, "")}
-                                </a>
-                              </div>
-                            )}
+                          {pyme.address && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <MapPin className="h-4 w-4 flex-shrink-0" />
+                              <span>{pyme.address}</span>
+                            </div>
+                          )}
 
-                            <Badge variant="secondary" className="w-fit">
-                              {fulfillmentLabels[pyme.fulfillment]}
-                            </Badge>
-                          </div>
+                          {pyme.hours && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Clock className="h-4 w-4 flex-shrink-0" />
+                              <span>{pyme.hours}</span>
+                            </div>
+                          )}
+
+                          {pyme.website && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Globe className="h-4 w-4 flex-shrink-0" />
+                              <a href={pyme.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                                {pyme.website.replace(/^https?:\/\//, "")}
+                              </a>
+                            </div>
+                          )}
+
+                          <Badge variant="secondary" className="w-fit mt-1">
+                            {fulfillmentLabels[pyme.fulfillment]}
+                          </Badge>
                         </div>
+
+                        {/* Prompt to complete profile */}
+                        {(!pyme.phone || !pyme.email || !pyme.name) && (
+                          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                            <p className="text-amber-800 dark:text-amber-200">
+                              Completa tu perfil en <button type="button" onClick={() => setActiveTab("settings")} className="underline font-medium">Configuración</button> para que los clientes puedan contactarte.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -267,12 +290,12 @@ export default function ProfilePage() {
                               onClick={() => router.push(`/listing/${listing.id}`)}
                             >
                               <CardContent className="p-4">
-                                <div className="aspect-video bg-muted rounded-md mb-3 overflow-hidden">
+                                <div className="relative aspect-video bg-muted rounded-md mb-3 overflow-hidden">
                                   {listing.images?.[0] ? (
                                     <Image
-                                      src={listing.images[0] || "/placeholder.svg"}
+                                      src={listing.images[0]}
                                       alt={listing.title}
-                                      className="w-full h-full object-cover"
+                                      className="object-cover"
                                       fill
                                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     />
@@ -354,12 +377,12 @@ export default function ProfilePage() {
                             onClick={() => router.push(`/listing/${listing.id}`)}
                           >
                             <CardContent className="p-4">
-                              <div className="aspect-video bg-muted rounded-md mb-3 overflow-hidden">
+                              <div className="relative aspect-video bg-muted rounded-md mb-3 overflow-hidden">
                                 {listing.images?.[0] ? (
                                   <Image
-                                    src={listing.images[0] || "/placeholder.svg"}
+                                    src={listing.images[0]}
                                     alt={listing.title}
-                                    className="w-full h-full object-cover"
+                                    className="object-cover"
                                     fill
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                   />
@@ -399,45 +422,27 @@ export default function ProfilePage() {
                       </h3>
 
                       <div className="space-y-2">
-                        <Label htmlFor="bannerUrl">URL del Banner (1200x400px recomendado)</Label>
-                        <Input
-                          id="bannerUrl"
-                          placeholder="https://ejemplo.com/banner.jpg"
+                        <Label>Banner (1200x400px recomendado)</Label>
+                        <SingleImageUploader
                           value={formData.bannerUrl}
-                          onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
+                          onChange={(url) => setFormData({ ...formData, bannerUrl: url })}
+                          userId={user?.id || ""}
+                          aspectRatio="banner"
+                          placeholder="Subir banner"
+                          disabled={isSaving}
                         />
-                        {formData.bannerUrl && (
-                          <div className="relative aspect-[3/1] bg-muted rounded-md overflow-hidden">
-                            <Image
-                              src={formData.bannerUrl || "/placeholder.svg"}
-                              alt="Preview banner"
-                              className="object-cover"
-                              fill
-                              sizes="100vw"
-                            />
-                          </div>
-                        )}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="avatarUrl">URL del Logo (500x500px recomendado)</Label>
-                        <Input
-                          id="avatarUrl"
-                          placeholder="https://ejemplo.com/logo.jpg"
+                        <Label>Logo (500x500px recomendado)</Label>
+                        <SingleImageUploader
                           value={formData.avatarUrl}
-                          onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
+                          onChange={(url) => setFormData({ ...formData, avatarUrl: url })}
+                          userId={user?.id || ""}
+                          aspectRatio="square"
+                          placeholder="Subir logo"
+                          disabled={isSaving}
                         />
-                        {formData.avatarUrl && (
-                          <div className="relative w-32 h-32 rounded-full bg-muted overflow-hidden">
-                            <Image
-                              src={formData.avatarUrl || "/placeholder.svg"}
-                              alt="Preview logo"
-                              className="object-cover"
-                              fill
-                              sizes="128px"
-                            />
-                          </div>
-                        )}
                       </div>
                     </div>
 

@@ -1,27 +1,24 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Category } from "@/domain/entities/Category"
 import type { Listing } from "@/domain/entities/Listing"
-import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
-import { pymeMockRepository } from "@/data/repositories/PymeMockRepository"
+import { marketplaceRepository } from "@/data/repositories/marketplace"
 import { Button } from "@/components/ui/button"
 import { FeaturedRequestDialog } from "@/features/pymes/components/FeaturedRequestDialog"
 import { DashboardStats } from "@/features/pymes/components/DashboardStats"
 import { ListingFormDialog, type ListingFormData } from "@/features/pymes/components/ListingFormDialog"
 import { ListingTable } from "@/features/pymes/components/ListingTable"
 import { useAuth } from "@/features/auth/hooks/useAuth"
-import { createListingAction, toggleActiveAction, updateListingAction } from "@/features/pymes/actions/listingActions"
+import { createListingAction, getMyListingsAction, requestFeaturedAction, toggleActiveAction, updateListingAction } from "@/features/pymes/actions/listingActions"
 import { Footer } from "@/shared/components/Footer"
 import { Navbar } from "@/shared/components/Navbar"
 import { PageHeader } from "@/shared/components/PageHeader"
 
 export default function DashboardPage() {
-  const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
 
   const [listings, setListings] = useState<Listing[]>([])
@@ -33,13 +30,7 @@ export default function DashboardPage() {
   const [showFeaturedDialog, setShowFeaturedDialog] = useState(false)
   const [requestingFeaturedId, setRequestingFeaturedId] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/auth")
-    } else if (!authLoading && user?.role !== "pyme") {
-      router.push("/")
-    }
-  }, [user, authLoading, router])
+  // Auth is handled by middleware - no redirect needed here
 
   useEffect(() => {
     async function loadData() {
@@ -48,8 +39,8 @@ export default function DashboardPage() {
       setIsLoading(true)
       try {
         const [loadedListings, loadedCategories] = await Promise.all([
-          pymeMockRepository.getListingsByPymeId(user.pymeId),
-          marketplaceMockRepository.getCategories(),
+          getMyListingsAction(user.pymeId),
+          marketplaceRepository.getCategories(),
         ])
 
         setListings(loadedListings)
@@ -136,7 +127,7 @@ export default function DashboardPage() {
     if (!requestingFeaturedId) return
 
     try {
-      await pymeMockRepository.requestFeatured(requestingFeaturedId)
+      await requestFeaturedAction(requestingFeaturedId)
       toast.success("Solicitud enviada. Te contactaremos pronto.")
       setRequestingFeaturedId(null)
     } catch (error) {
@@ -157,8 +148,9 @@ export default function DashboardPage() {
     )
   }
 
-  if (!user || user.role !== "pyme") {
-    return null
+  // Middleware ensures only pyme users reach this page
+  if (!user) {
+    return null // Still loading
   }
 
   const stats = {
@@ -209,6 +201,7 @@ export default function DashboardPage() {
         }}
         listing={editingListing}
         categories={categories}
+        userId={user.id}
         onSubmit={editingListing ? handleUpdateListing : handleCreateListing}
       />
 

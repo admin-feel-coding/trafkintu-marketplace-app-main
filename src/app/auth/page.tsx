@@ -43,10 +43,15 @@ export default function AuthPage() {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              <p>Credenciales de prueba:</p>
-              <p>Admin: admin@trafkintu.cl</p>
-              <p>PYME: panaderia@test.cl</p>
+            <div className="mt-6 p-4 bg-muted rounded-lg text-sm">
+              <p className="font-medium mb-2">Usuarios de prueba:</p>
+              <div className="space-y-1 text-muted-foreground">
+                <p>Admin: admin@trafkintu.cl</p>
+                <p>PYME: panaderia@test.cl</p>
+                <p>PYME: artesanias@test.cl</p>
+                <p>PYME: carpinteria@test.cl</p>
+                <p className="text-xs mt-2 italic">Contraseña = email</p>
+              </div>
             </div>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
-import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
-import { mockPymes } from "@/data/mock/seed"
+import { marketplaceRepository } from "@/data/repositories/marketplace"
+import { getAllPymesAction } from "@/features/pymes/actions/pymeActions"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CategoryChips } from "@/features/marketplace/components/CategoryChips"
@@ -13,13 +13,12 @@ import { Footer } from "@/shared/components/Footer"
 import { Navbar } from "@/shared/components/Navbar"
 
 export default async function HomePage() {
-  const [featuredListings, recentListings, categories] = await Promise.all([
+  const [featuredListings, recentListings, categories, pymes] = await Promise.all([
     getFeaturedListings(),
     getRecentListings(8),
-    marketplaceMockRepository.getCategories(),
+    marketplaceRepository.getCategories(),
+    getAllPymesAction(),
   ])
-
-  const pymes = mockPymes
 
   return (
     <>

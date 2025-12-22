@@ -27,7 +27,10 @@ export class AdminSupabaseRepository implements AdminRepository {
       .maybeSingle()
     if (error || !request) throw new Error("Request not found")
 
-    const { error: updateListing } = await admin.from("listings").update({ is_featured: true }).eq("id", request.listing_id)
+    const { error: updateListing } = await admin
+      .from("listings")
+      .update({ is_featured: true })
+      .eq("id", request.listing_id)
     if (updateListing) throw new Error("Failed to update listing")
 
     await admin.from("featured_requests").update({ status: "approved" }).eq("id", requestId)
@@ -36,14 +39,21 @@ export class AdminSupabaseRepository implements AdminRepository {
   async rejectFeaturedRequest(requestId: string): Promise<void> {
     const admin = supabaseAdmin()
     if (!admin) throw new Error("Supabase admin no configurado")
-    const { error } = await admin.from("featured_requests").update({ status: "rejected" }).eq("id", requestId)
+    const { error } = await admin
+      .from("featured_requests")
+      .update({ status: "rejected" })
+      .eq("id", requestId)
     if (error) throw new Error("Failed to reject")
   }
 
   async toggleListingActive(listingId: string): Promise<void> {
     const admin = supabaseAdmin()
     if (!admin) throw new Error("Supabase admin no configurado")
-    const { data: listing, error } = await admin.from("listings").select("is_active").eq("id", listingId).maybeSingle()
+    const { data: listing, error } = await admin
+      .from("listings")
+      .select("is_active")
+      .eq("id", listingId)
+      .maybeSingle()
     if (error || !listing) throw new Error("Listing not found")
     const { error: update } = await admin
       .from("listings")

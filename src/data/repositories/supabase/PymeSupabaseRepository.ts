@@ -3,14 +3,12 @@ import type { Pyme } from "@/domain/entities/Pyme"
 import type { Listing } from "@/domain/entities/Listing"
 import { supabaseBrowser } from "@/shared/lib/supabase/browser"
 import { mapListing, mapPyme } from "./mappers"
-import { mockListings, mockPymes } from "@/data/mock/seed"
+
 
 export class PymeSupabaseRepository implements PymeRepository {
   async getPymeById(id: string): Promise<Pyme | null> {
     const supabase = supabaseBrowser()
-    if (!supabase) {
-      return mockPymes.find((p) => p.id === id) || null
-    }
+    if (!supabase) return null
     const { data, error } = await supabase.from("pymes").select("*").eq("id", id).maybeSingle()
     if (error || !data) return null
     return mapPyme(data)
@@ -18,10 +16,9 @@ export class PymeSupabaseRepository implements PymeRepository {
 
   async getListingsByPymeId(pymeId: string): Promise<Listing[]> {
     const supabase = supabaseBrowser()
-    if (!supabase) {
-      return mockListings.filter((l) => l.pymeId === pymeId)
-    }
+    if (!supabase) return []
     const { data, error } = await supabase
+      
       .from("listings")
       .select("*, listing_images(url, sort_order)")
       .eq("pyme_id", pymeId)
@@ -33,6 +30,7 @@ export class PymeSupabaseRepository implements PymeRepository {
     const supabase = supabaseBrowser()
     if (!supabase) throw new Error("Supabase no configurado")
     const { data: inserted, error } = await supabase
+      
       .from("listings")
       .insert({
         pyme_id: pymeId,
@@ -40,7 +38,8 @@ export class PymeSupabaseRepository implements PymeRepository {
         category_id: data.categoryId,
         title: data.title,
         description: data.description,
-        price: data.price,
+        price_kind: data.price.kind,
+        price_amount: data.price.amount || null,
         is_active: true,
         is_featured: false,
       })
@@ -61,6 +60,7 @@ export class PymeSupabaseRepository implements PymeRepository {
     }
 
     const { data: withImages } = await supabase
+      
       .from("listings")
       .select("*, listing_images(url, sort_order)")
       .eq("id", inserted.id)
@@ -73,13 +73,15 @@ export class PymeSupabaseRepository implements PymeRepository {
     const supabase = supabaseBrowser()
     if (!supabase) throw new Error("Supabase no configurado")
     const { data: updated, error } = await supabase
+      
       .from("listings")
       .update({
         type: data.type,
         category_id: data.categoryId,
         title: data.title,
         description: data.description,
-        price: data.price,
+        price_kind: data.price?.kind,
+        price_amount: data.price?.amount || null,
       })
       .eq("id", listingId)
       .select("*")
@@ -103,6 +105,7 @@ export class PymeSupabaseRepository implements PymeRepository {
     }
 
     const { data: withImages } = await supabase
+      
       .from("listings")
       .select("*, listing_images(url, sort_order)")
       .eq("id", listingId)
@@ -114,10 +117,16 @@ export class PymeSupabaseRepository implements PymeRepository {
   async toggleListingActive(listingId: string): Promise<Listing> {
     const supabase = supabaseBrowser()
     if (!supabase) throw new Error("Supabase no configurado")
-    const { data: existing } = await supabase.from("listings").select("*").eq("id", listingId).maybeSingle()
+    const { data: existing } = await supabase
+      
+      .from("listings")
+      .select("*")
+      .eq("id", listingId)
+      .maybeSingle()
     if (!existing) throw new Error("Listing not found")
 
     const { data: updated, error } = await supabase
+      
       .from("listings")
       .update({ is_active: !existing.is_active })
       .eq("id", listingId)
@@ -126,6 +135,7 @@ export class PymeSupabaseRepository implements PymeRepository {
 
     if (error || !updated) throw new Error("Error toggling active")
     const { data: withImages } = await supabase
+      
       .from("listings")
       .select("*, listing_images(url, sort_order)")
       .eq("id", listingId)
@@ -137,10 +147,16 @@ export class PymeSupabaseRepository implements PymeRepository {
   async requestFeatured(listingId: string): Promise<void> {
     const supabase = supabaseBrowser()
     if (!supabase) throw new Error("Supabase no configurado")
-    const { data: existing } = await supabase.from("listings").select("pyme_id").eq("id", listingId).maybeSingle()
+    const { data: existing } = await supabase
+      
+      .from("listings")
+      .select("pyme_id")
+      .eq("id", listingId)
+      .maybeSingle()
     if (!existing) throw new Error("Listing not found")
 
     const { data: pending } = await supabase
+      
       .from("featured_requests")
       .select("id")
       .eq("listing_id", listingId)
@@ -160,6 +176,7 @@ export class PymeSupabaseRepository implements PymeRepository {
     const supabase = supabaseBrowser()
     if (!supabase) throw new Error("Supabase no configurado")
     const { data: updated, error } = await supabase
+      
       .from("pymes")
       .update({
         name: data.name,

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ImageUploader } from "@/shared/components/ImageUploader"
 import type { Listing } from "@/domain/entities/Listing"
 import type { Category } from "@/domain/entities/Category"
 
@@ -17,6 +18,7 @@ interface ListingFormDialogProps {
   onOpenChange: (open: boolean) => void
   listing?: Listing
   categories: Category[]
+  userId: string
   onSubmit: (data: ListingFormData) => Promise<void>
 }
 
@@ -30,7 +32,7 @@ export interface ListingFormData {
   images: string[]
 }
 
-export function ListingFormDialog({ open, onOpenChange, listing, categories, onSubmit }: ListingFormDialogProps) {
+export function ListingFormDialog({ open, onOpenChange, listing, categories, userId, onSubmit }: ListingFormDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<ListingFormData>({
     title: "",
@@ -175,14 +177,14 @@ export function ListingFormDialog({ open, onOpenChange, listing, categories, onS
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="images">URL de Imagen</Label>
-            <Input
-              id="images"
-              placeholder="https://ejemplo.com/imagen.jpg"
-              value={formData.images[0] || ""}
-              onChange={(e) => setFormData({ ...formData, images: e.target.value ? [e.target.value] : [] })}
+            <Label>Imágenes</Label>
+            <ImageUploader
+              images={formData.images}
+              onImagesChange={(urls) => setFormData({ ...formData, images: urls })}
+              userId={userId}
+              maxImages={5}
+              disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground">Por ahora solo se admite una imagen</p>
           </div>
 
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4">

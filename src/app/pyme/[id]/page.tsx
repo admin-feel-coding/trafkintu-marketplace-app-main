@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation"
 import { Navbar } from "@/shared/components/Navbar"
 import { Footer } from "@/shared/components/Footer"
-import { pymeMockRepository } from "@/data/repositories/PymeMockRepository"
-import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
-import { mockPymes } from "@/data/mock/seed"
+import { getPymeByIdAction, getAllPymesAction } from "@/features/pymes/actions/pymeActions"
+import { getMyListingsAction } from "@/features/pymes/actions/listingActions"
+import { marketplaceRepository } from "@/data/repositories/marketplace"
 import { PymePublicProfile } from "@/features/pymes/components/PymePublicProfile"
 
 export default async function PymeDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -12,15 +12,16 @@ export default async function PymeDetailPage({ params }: { params: Promise<{ id:
     notFound()
   }
 
-  const pyme = (await pymeMockRepository.getPymeById(id)) || mockPymes.find((p) => p.id === id)
+  const pyme = await getPymeByIdAction(id)
 
   if (!pyme) {
     notFound()
   }
 
-  const [listings, categories] = await Promise.all([
-    pymeMockRepository.getListingsByPymeId(id),
-    marketplaceMockRepository.getCategories(),
+  const [listings, categories, allPymes] = await Promise.all([
+    getMyListingsAction(id),
+    marketplaceRepository.getCategories(),
+    getAllPymesAction(),
   ])
 
   const activeListings = listings.filter((l) => l.isActive)
@@ -29,7 +30,7 @@ export default async function PymeDetailPage({ params }: { params: Promise<{ id:
     <>
       <Navbar />
       <main className="min-h-screen">
-        <PymePublicProfile pyme={pyme} listings={activeListings} categories={categories} allPymes={mockPymes} />
+        <PymePublicProfile pyme={pyme} listings={activeListings} categories={categories} allPymes={allPymes} />
       </main>
       <Footer />
     </>

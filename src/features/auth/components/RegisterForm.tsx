@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { authMockRepository } from "@/data/repositories/AuthMockRepository"
 import { RUT } from "@/domain/value-objects/RUT"
 
 export function RegisterForm() {
@@ -27,10 +26,17 @@ export function RegisterForm() {
     setIsLoading(true)
 
     try {
-      // Validate RUT
+      // Check format first
+      if (!RUT.isValidFormat(rut)) {
+        toast.error("Formato de RUT inválido. Usa 12345678-9 o 12.345.678-9")
+        setIsLoading(false)
+        return
+      }
+
+      // Validate check digit
       const validRut = RUT.create(rut)
       if (!validRut) {
-        toast.error("RUT inválido. Verifica el formato y dígito verificador.")
+        toast.error("El dígito verificador del RUT es incorrecto")
         setIsLoading(false)
         return
       }
@@ -42,26 +48,33 @@ export function RegisterForm() {
         return
       }
 
-      const user = await authMockRepository.register({
-        email,
-        password,
-        role,
-        rut,
-        displayName,
-        pymeName: role === "pyme" ? pymeName : undefined,
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          role,
+          rut: validRut.toString(), // Normalized format: "12345678-9"
+          displayName,
+          pymeName: role === "pyme" ? pymeName : undefined,
+        }),
       })
 
-      if (user) {
-        toast.success("Cuenta creada exitosamente")
+      const data = await response.json()
 
-        // Redirect based on role
-        if (user.role === "pyme") {
-          router.push("/dashboard")
-        } else {
-          router.push("/")
-        }
+      if (!response.ok) {
+        toast.error(data.error || "Error al crear la cuenta")
+        return
+      }
+
+      toast.success("Cuenta creada exitosamente")
+
+      // Hard redirect to refresh auth state
+      if (data.role === "pyme") {
+        window.location.href = "/dashboard"
       } else {
-        toast.error("Error al crear la cuenta")
+        window.location.href = "/"
       }
     } catch (error) {
       toast.error("Error al registrar usuario")
@@ -116,12 +129,17 @@ export function RegisterForm() {
         <Input
           id="register-rut"
           type="text"
-          placeholder="12.345.678-9"
+          placeholder="12345678-9"
           value={rut}
           onChange={(e) => setRut(e.target.value)}
+          onBlur={() => {
+            if (rut && RUT.isValidFormat(rut)) {
+              setRut(RUT.normalize(rut))
+            }
+          }}
           required
         />
-        <p className="text-xs text-muted-foreground">Formato: 12.345.678-9 o 12345678-9</p>
+        <p className="text-xs text-muted-foreground">Acepta: 12.345.678-9, 123456789, 12345678-9</p>
       </div>
 
       <div className="space-y-2">

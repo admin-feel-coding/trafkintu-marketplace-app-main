@@ -8,7 +8,6 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { authMockRepository } from "@/data/repositories/AuthMockRepository"
 
 export function LoginForm() {
   const router = useRouter()
@@ -21,21 +20,28 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
-      const user = await authMockRepository.login(email, password)
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
 
-      if (user) {
-        toast.success("Sesión iniciada correctamente")
+      const data = await response.json()
 
-        // Redirect based on role
-        if (user.role === "admin") {
-          router.push("/admin")
-        } else if (user.role === "pyme") {
-          router.push("/dashboard")
-        } else {
-          router.push("/")
-        }
+      if (!response.ok) {
+        toast.error(data.error || "Credenciales incorrectas")
+        return
+      }
+
+      toast.success("Sesión iniciada correctamente")
+
+      // Hard redirect to refresh auth state
+      if (data.role === "admin") {
+        window.location.href = "/admin"
+      } else if (data.role === "pyme") {
+        window.location.href = "/dashboard"
       } else {
-        toast.error("Credenciales incorrectas")
+        window.location.href = "/"
       }
     } catch (error) {
       toast.error("Error al iniciar sesión")

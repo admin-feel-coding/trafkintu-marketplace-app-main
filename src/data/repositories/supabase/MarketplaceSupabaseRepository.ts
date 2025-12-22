@@ -3,14 +3,13 @@ import type { Listing } from "@/domain/entities/Listing"
 import type { Category } from "@/domain/entities/Category"
 import { supabaseBrowser } from "@/shared/lib/supabase/browser"
 import { mapListing, mapCategory } from "./mappers"
-import { mockListings, mockCategories } from "@/data/mock/seed"
+
 
 export class MarketplaceSupabaseRepository implements MarketplaceRepository {
   async getListings(filters?: ListingFilters): Promise<Listing[]> {
     const supabase = supabaseBrowser()
-    if (!supabase) {
-      return mockListings
-    }
+    if (!supabase) return []
+
     let query = supabase.from("listings").select("*, listing_images(url, sort_order)")
 
     if (filters?.isActive !== undefined) {
@@ -26,14 +25,7 @@ export class MarketplaceSupabaseRepository implements MarketplaceRepository {
       query = query.eq("type", filters.type)
     }
     if (filters?.searchQuery) {
-      query = query.or(
-        [
-          `title.ilike.%${filters.searchQuery}%`,
-          `description.ilike.%${filters.searchQuery}%`,
-          `category_name.ilike.%${filters.searchQuery}%`,
-          `pyme_name.ilike.%${filters.searchQuery}%`,
-        ].join(","),
-      )
+      query = query.or(`title.ilike.%${filters.searchQuery}%,description.ilike.%${filters.searchQuery}%`)
     }
 
     query = query.order("is_featured", { ascending: false }).order("created_at", { ascending: false })
@@ -45,10 +37,10 @@ export class MarketplaceSupabaseRepository implements MarketplaceRepository {
 
   async getListingById(id: string): Promise<Listing | null> {
     const supabase = supabaseBrowser()
-    if (!supabase) {
-      return mockListings.find((l) => l.id === id) || null
-    }
+    if (!supabase) return null
+
     const { data, error } = await supabase
+      
       .from("listings")
       .select("*, listing_images(url, sort_order)")
       .eq("id", id)
@@ -59,9 +51,8 @@ export class MarketplaceSupabaseRepository implements MarketplaceRepository {
 
   async getCategories(): Promise<Category[]> {
     const supabase = supabaseBrowser()
-    if (!supabase) {
-      return mockCategories
-    }
+    if (!supabase) return []
+
     const { data, error } = await supabase.from("categories").select("*")
     if (error || !data) return []
     return data.map(mapCategory)

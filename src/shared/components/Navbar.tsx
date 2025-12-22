@@ -52,11 +52,11 @@ export function Navbar() {
                 <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 h-auto">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user.displayName.charAt(0).toUpperCase()}
+                      {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden md:flex flex-col items-start gap-1">
-                    <span className="text-sm font-medium leading-none">{user.displayName}</span>
+                    <span className="text-sm font-medium leading-none">{user.displayName || user.email}</span>
                     <Badge
                       variant={user.role === "pyme" ? "default" : "secondary"}
                       className="text-[10px] h-4 px-1.5 leading-none"

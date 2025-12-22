@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import type { Listing } from "@/domain/entities/Listing"
 import type { Category } from "@/domain/entities/Category"
 import type { Pyme } from "@/domain/entities/Pyme"
-import { marketplaceMockRepository } from "@/data/repositories/MarketplaceMockRepository"
-import { mockPymes } from "@/data/mock/seed"
+import { marketplaceRepository } from "@/data/repositories/marketplace"
+import { getAllPymesAction } from "@/features/pymes/actions/pymeActions"
 import { rankListings } from "@/domain/services/rankingService"
 import { searchListings } from "@/domain/services/searchService"
 
@@ -16,19 +16,21 @@ export function useMarketplace(filters?: {
 }) {
   const [listings, setListings] = useState<Listing[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [pymes] = useState<Pyme[]>(mockPymes)
+  const [pymes, setPymes] = useState<Pyme[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true)
       try {
-        const [loadedCategories, allListings] = await Promise.all([
-          marketplaceMockRepository.getCategories(),
-          marketplaceMockRepository.getListings({ isActive: true }),
+        const [loadedCategories, allListings, loadedPymes] = await Promise.all([
+          marketplaceRepository.getCategories(),
+          marketplaceRepository.getListings({ isActive: true }),
+          getAllPymesAction(),
         ])
 
         setCategories(loadedCategories)
+        setPymes(loadedPymes)
 
         let filtered = allListings
 
@@ -47,7 +49,7 @@ export function useMarketplace(filters?: {
 
         // Search
         if (filters?.searchQuery) {
-          filtered = searchListings(filtered, filters.searchQuery, loadedCategories, pymes)
+          filtered = searchListings(filtered, filters.searchQuery, loadedCategories, loadedPymes)
         }
 
         // Rank (featured first, then by date)
@@ -59,7 +61,7 @@ export function useMarketplace(filters?: {
     }
 
     loadData()
-  }, [filters?.categorySlug, filters?.type, filters?.searchQuery, pymes])
+  }, [filters?.categorySlug, filters?.type, filters?.searchQuery])
 
   return { listings, categories, pymes, isLoading }
 }

@@ -1,55 +1,191 @@
 "use server"
 
 import type { Listing } from "@/domain/entities/Listing"
-import { addServerListing, updateServerListing, deleteServerListing, getServerListings } from "@/data/mock/storage"
+import { supabaseAdmin } from "@/shared/lib/supabase/admin"
+import { mapListing } from "@/data/repositories/supabase/mappers"
+
 
 export async function getMyListingsAction(pymeId: string): Promise<Listing[]> {
-  const listings = getServerListings()
-  return listings.filter((l) => l.pymeId === pymeId)
+  const supabase = supabaseAdmin()
+  if (!supabase) return []
+
+  const { data, error } = await supabase
+    
+    .from("listings")
+    .select("*, listing_images(url, sort_order)")
+    .eq("pyme_id", pymeId)
+
+  if (error || !data) return []
+  return data.map(mapListing)
 }
 
-export async function createListingAction(listing: Omit<Listing, "id" | "createdAt">) {
-  const newListing: Listing = {
-    ...listing,
-    id: `list-${Date.now()}`,
-    createdAt: new Date(),
+export async function createListingAction(data: {
+  pymeId: string
+  title: string
+  type: "product" | "service"
+  categoryId: string
+  description: string
+  price: { kind: "fixed" | "from" | "quote"; amount?: number }
+  images: string[]
+  isActive: boolean
+  isFeatured: boolean
+}): Promise<Listing> {
+  const supabase = supabaseAdmin()
+  if (!supabase) throw new Error("Supabase no configurado")
+
+  const { data: inserted, error } = await supabase
+    
+    .from("listings")
+    .insert({
+      pyme_id: data.pymeId,
+      type: data.type,
+      category_id: data.categoryId,
+      title: data.title,
+      description: data.description,
+      price_kind: data.price.kind,
+      price_amount: data.price.amount || null,
+      is_active: data.isActive,
+      is_featured: data.isFeatured,
+    })
+    .select("*")
+    .maybeSingle()
+
+  if (error || !inserted) {
+    console.error("[createListingAction] Error:", error)
+    throw new Error("Error creating listing")
   }
 
-  console.log("[v0][SERVER ACTION] Creating listing:", newListing.id)
-  addServerListing(newListing)
-
-  return newListing
-}
-
-export async function updateListingAction(id: string, data: Partial<Omit<Listing, "id" | "pymeId" | "createdAt">>) {
-  console.log("[v0][SERVER ACTION] Updating listing:", id)
-  const listings = getServerListings()
-  const existing = listings.find((l) => l.id === id)
-
-  if (!existing) {
-    throw new Error("Listing not found")
+  if (data.images?.length) {
+    const imagesPayload = data.images.map((url, idx) => ({
+      listing_id: inserted.id,
+      url,
+      sort_order: idx + 1,
+    }))
+    await supabase.from("listing_images").insert(imagesPayload)
   }
 
-  const updated = { ...existing, ...data }
-  updateServerListing(updated)
-  return updated
+  const { data: withImages } = await supabase
+    
+    .from("listings")
+    .select("*, listing_images(url, sort_order)")
+    .eq("id", inserted.id)
+    .maybeSingle()
+
+  return mapListing(withImages || inserted)
 }
 
-export async function deleteListingAction(id: string): Promise<boolean> {
-  console.log("[v0][SERVER ACTION] Deleting listing:", id)
-  deleteServerListing(id)
-  return true
-}
+export async function updateListingAction(
+  id: string,
+  data: Partial<{
+    title: string
+    type: "product" | "service"
+    categoryId: string
+    description: string
+    price: { kind: "fixed" | "from" | "quote"; amount?: number }
+    images: string[]
+  }>
+): Promise<Listing> {
+  const supabase = supabaseAdmin()
+  if (!supabase) throw new Error("Supabase no configurado")
 
-export async function toggleActiveAction(id: string) {
-  const listings = getServerListings()
-  const listing = listings.find((l) => l.id === id)
+  const { data: updated, error } = await supabase
+    
+    .from("listings")
+    .update({
+      type: data.type,
+      category_id: data.categoryId,
+      title: data.title,
+      description: data.description,
+      price_kind: data.price?.kind,
+      price_amount: data.price?.amount || null,
+    })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle()
 
-  if (!listing) {
-    throw new Error("Listing not found")
+  if (error || !updated) {
+    console.error("[updateListingAction] Error:", error)
+    throw new Error("Error updating listing")
   }
 
-  const updated = { ...listing, isActive: !listing.isActive }
-  updateServerListing(updated)
-  return updated
+  if (data.images) {
+    await supabase.from("listing_images").delete().eq("listing_id", id)
+    if (data.images.length) {
+      await supabase.from("listing_images").insert(
+        data.images.map((url, idx) => ({
+          listing_id: id,
+          url,
+          sort_order: idx + 1,
+        }))
+      )
+    }
+  }
+
+  const { data: withImages } = await supabase
+    
+    .from("listings")
+    .select("*, listing_images(url, sort_order)")
+    .eq("id", id)
+    .maybeSingle()
+
+  return mapListing(withImages || updated)
+}
+
+export async function toggleActiveAction(id: string): Promise<Listing> {
+  const supabase = supabaseAdmin()
+  if (!supabase) throw new Error("Supabase no configurado")
+
+  const { data: listing, error: fetchError } = await supabase
+    
+    .from("listings")
+    .select("is_active")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (fetchError || !listing) throw new Error("Listing not found")
+
+  const { data: updated, error } = await supabase
+    
+    .from("listings")
+    .update({ is_active: !listing.is_active })
+    .eq("id", id)
+    .select("*, listing_images(url, sort_order)")
+    .maybeSingle()
+
+  if (error || !updated) throw new Error("Error toggling active")
+
+  return mapListing(updated)
+}
+
+export async function requestFeaturedAction(listingId: string): Promise<void> {
+  const supabase = supabaseAdmin()
+  if (!supabase) throw new Error("Supabase no configurado")
+
+  const { data: listing } = await supabase
+    
+    .from("listings")
+    .select("pyme_id")
+    .eq("id", listingId)
+    .maybeSingle()
+
+  if (!listing) throw new Error("Listing not found")
+
+  // Check if already has pending request
+  const { data: pending } = await supabase
+    
+    .from("featured_requests")
+    .select("id")
+    .eq("listing_id", listingId)
+    .eq("status", "pending")
+    .maybeSingle()
+
+  if (pending) return // Already has pending request
+
+  const { error } = await supabase.from("featured_requests").insert({
+    listing_id: listingId,
+    pyme_id: listing.pyme_id,
+    status: "pending",
+  })
+
+  if (error) throw new Error("Error requesting featured")
 }
