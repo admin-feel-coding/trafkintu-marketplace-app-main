@@ -20,7 +20,7 @@ interface ListingCardProps {
 export function ListingCard({ listing, category, pyme }: ListingCardProps) {
   return (
     <Link href={`/listing/${listing.id}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200 h-full flex flex-col pt-0 gap-0">
         <div className="relative aspect-square w-full overflow-hidden bg-muted">
           {listing.images[0] && (
             <Image

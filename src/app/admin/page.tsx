@@ -104,7 +104,7 @@ export default function AdminPage() {
     return (
       <>
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4 md:py-8">
           <p>Cargando...</p>
         </div>
         <Footer />
@@ -127,20 +127,20 @@ export default function AdminPage() {
     <>
       <Navbar />
       <main className="min-h-screen">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4 md:py-8">
           <PageHeader title="Panel de Administración" description="Gestión de publicaciones y solicitudes destacadas" />
 
           <AdminStats {...stats} />
 
-          <div className="mt-8">
+          <div className="mt-6 md:mt-8">
             <Tabs defaultValue="requests" className="w-full">
-              <TabsList>
+              <TabsList className="w-full sm:w-auto overflow-x-auto flex-nowrap">
                 <TabsTrigger value="requests">Solicitudes Destacado</TabsTrigger>
                 <TabsTrigger value="moderation">Moderación</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="requests" className="mt-6">
-                <h2 className="text-2xl font-bold mb-4">Solicitudes de Destacado</h2>
+              <TabsContent value="requests" className="mt-4 md:mt-6">
+                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Solicitudes de Destacado</h2>
                 <FeaturedRequestsTable
                   requests={requests}
                   listings={listings}
@@ -150,8 +150,8 @@ export default function AdminPage() {
                 />
               </TabsContent>
 
-              <TabsContent value="moderation" className="mt-6">
-                <h2 className="text-2xl font-bold mb-4">Moderación de Publicaciones</h2>
+              <TabsContent value="moderation" className="mt-4 md:mt-6">
+                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Moderación de Publicaciones</h2>
                 <ModerationTable
                   listings={listings}
                   categories={categories}

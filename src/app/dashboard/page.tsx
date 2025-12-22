@@ -171,7 +171,7 @@ export default function DashboardPage() {
     <>
       <Navbar />
       <main className="min-h-screen">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4 md:py-8">
           <PageHeader
             title="Panel de Gestión"
             description="Administra tus publicaciones"
@@ -185,8 +185,8 @@ export default function DashboardPage() {
 
           <DashboardStats {...stats} />
 
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Mis Publicaciones</h2>
+          <div className="mt-6 md:mt-8">
+            <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Mis Publicaciones</h2>
             <ListingTable
               listings={listings}
               categories={categories}

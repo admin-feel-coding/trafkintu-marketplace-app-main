@@ -42,10 +42,10 @@ export default function ExplorePage() {
           />
 
           {/* Search and Filters */}
-          <div className="space-y-6 mb-8">
+          <div className="space-y-4 md:space-y-6 mb-6 md:mb-8">
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
 
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            <div className="flex flex-col gap-3 md:gap-4">
               <CategoryChips categories={categories} selectedSlug={categorySlug} />
 
               <Tabs
@@ -63,14 +63,14 @@ export default function ExplorePage() {
 
           {/* Results Count */}
           {!isLoading && (
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-sm text-muted-foreground mb-4 md:mb-6">
               {listings.length} {listings.length === 1 ? "resultado" : "resultados"} encontrados
             </p>
           )}
 
           {/* Listings Grid */}
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="space-y-3">
                   <Skeleton className="aspect-square w-full" />

@@ -130,7 +130,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 py-4 md:py-8">
         <div className="max-w-6xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList
@@ -159,7 +159,7 @@ export default function ProfilePage() {
               {user.role === "pyme" && pyme ? (
                 <>
                   {/* Banner */}
-                  <div className="relative h-48 md:h-64 bg-gradient-to-br from-accent to-accent-foreground/20 overflow-hidden rounded-lg">
+                  <div className="relative h-32 sm:h-48 md:h-64 bg-gradient-to-br from-accent to-accent-foreground/20 overflow-hidden rounded-lg">
                     {pyme.bannerUrl ? (
                       <Image
                         src={pyme.bannerUrl || "/placeholder.svg"}
@@ -182,9 +182,9 @@ export default function ProfilePage() {
                   <Card className="-mt-16 relative z-10">
                     <CardContent className="pt-6">
                       <div className="flex flex-col md:flex-row gap-6">
-                        <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+                        <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-background shadow-lg">
                           {pyme.avatarUrl && <AvatarImage src={pyme.avatarUrl || "/placeholder.svg"} alt={pyme.name} />}
-                          <AvatarFallback className="text-3xl">{pyme.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback className="text-xl md:text-3xl">{pyme.name.charAt(0)}</AvatarFallback>
                         </Avatar>
 
                         <div className="flex-1">
