@@ -1,6 +1,6 @@
 # TRAFKINTU – Marketplace PYMEs (MVP)
 
-Proyecto Next.js (App Router) con TypeScript, Tailwind y shadcn/ui. Arquitectura por capas: domain (entidades/ports/services), data (repos Supabase + seeds/fallback), features (auth/marketplace/pymes/admin), shared (lib/ui), components.
+Proyecto Next.js (App Router) con TypeScript, Tailwind y shadcn/ui. Arquitectura por capas: domain (entidades/ports/services), data (repos Supabase + seeds/fallback), features (auth/marketplace/pymes/admin), shared (lib/ui), components..
 
 ## Estructura
 ```
