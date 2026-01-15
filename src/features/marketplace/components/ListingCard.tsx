@@ -9,7 +9,7 @@ import type { Listing } from "@/domain/entities/Listing"
 import type { Category } from "@/domain/entities/Category"
 import type { Pyme } from "@/domain/entities/Pyme"
 import { formatPriceDisplay } from "@/shared/lib/format"
-import { Star } from "lucide-react"
+import { BadgeCheck, Star } from "lucide-react"
 
 interface ListingCardProps {
   listing: Listing
@@ -48,7 +48,17 @@ export function ListingCard({ listing, category, pyme }: ListingCardProps) {
             <h3 className="font-semibold text-lg line-clamp-2 mb-1">{listing.title}</h3>
           </div>
           <p className="text-xl font-bold text-primary mb-2">{formatPriceDisplay(listing.price)}</p>
-          {pyme && <p className="text-sm text-muted-foreground mb-3">{pyme.name}</p>}
+          {pyme && (
+            <div className="flex flex-wrap items-center gap-2 mb-3 text-sm text-muted-foreground">
+              <span>{pyme.name}</span>
+              {pyme.verificationStatus === "verified" && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                  <BadgeCheck className="h-3 w-3" />
+                  Verificada
+                </span>
+              )}
+            </div>
+          )}
           <Button className="w-full mt-auto bg-transparent" variant="outline">
             Ver detalles
           </Button>

@@ -125,7 +125,7 @@ export function RegisterForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="register-rut">RUT</Label>
+        <Label htmlFor="register-rut">{role === "pyme" ? "RUT de la empresa" : "RUT"}</Label>
         <Input
           id="register-rut"
           type="text"
@@ -139,7 +139,11 @@ export function RegisterForm() {
           }}
           required
         />
-        <p className="text-xs text-muted-foreground">Acepta: 12.345.678-9, 123456789, 12345678-9</p>
+        <p className="text-xs text-muted-foreground">
+          {role === "pyme"
+            ? "Debe corresponder al RUT de la empresa."
+            : "Acepta: 12.345.678-9, 123456789, 12345678-9"}
+        </p>
       </div>
 
       <div className="space-y-2">

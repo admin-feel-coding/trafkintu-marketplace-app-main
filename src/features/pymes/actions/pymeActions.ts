@@ -93,3 +93,78 @@ export async function getAllPymesAction(): Promise<Pyme[]> {
   if (error || !data) return []
   return data.map(mapPyme)
 }
+
+export async function requestPymeVerificationAction(pymeId: string, rut: string): Promise<Pyme | null> {
+  const supabase = supabaseAdmin()
+  if (!supabase) throw new Error("Supabase no configurado")
+
+  const { data: updated, error } = await supabase
+    .from("pymes")
+    .update({
+      rut,
+      verification_status: "pending",
+      verification_requested_at: new Date().toISOString(),
+      verification_verified_at: null,
+      verification_note: null,
+    })
+    .eq("id", pymeId)
+    .select("*")
+    .maybeSingle()
+
+  if (error) {
+    console.error("[requestPymeVerificationAction] Error:", error)
+    throw new Error("Error al solicitar verificación")
+  }
+
+  if (!updated) return null
+  return mapPyme(updated)
+}
+
+export async function approvePymeVerificationAction(pymeId: string): Promise<Pyme | null> {
+  const supabase = supabaseAdmin()
+  if (!supabase) throw new Error("Supabase no configurado")
+
+  const { data: updated, error } = await supabase
+    .from("pymes")
+    .update({
+      verification_status: "verified",
+      verification_verified_at: new Date().toISOString(),
+      verification_note: null,
+    })
+    .eq("id", pymeId)
+    .select("*")
+    .maybeSingle()
+
+  if (error) {
+    console.error("[approvePymeVerificationAction] Error:", error)
+    throw new Error("Error al aprobar verificación")
+  }
+
+  if (!updated) return null
+  return mapPyme(updated)
+}
+
+export async function rejectPymeVerificationAction(pymeId: string, note: string): Promise<Pyme | null> {
+  const supabase = supabaseAdmin()
+  if (!supabase) throw new Error("Supabase no configurado")
+
+  const { data: updated, error } = await supabase
+    .from("pymes")
+    .update({
+      verification_status: "unverified",
+      verification_requested_at: null,
+      verification_verified_at: null,
+      verification_note: note || "Sin comentario",
+    })
+    .eq("id", pymeId)
+    .select("*")
+    .maybeSingle()
+
+  if (error) {
+    console.error("[rejectPymeVerificationAction] Error:", error)
+    throw new Error("Error al rechazar verificación")
+  }
+
+  if (!updated) return null
+  return mapPyme(updated)
+}

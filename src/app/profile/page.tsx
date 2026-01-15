@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Clock, FileText, Globe, LogOut, Mail, MapPin, Phone, Settings, Store, Upload, Image as ImageIcon, User } from "lucide-react"
+import { BadgeCheck, Clock, FileText, Globe, LogOut, Mail, MapPin, Phone, Settings, Store, Upload, Image as ImageIcon, User } from "lucide-react"
 import { toast } from "sonner"
 
 import type { Category } from "@/domain/entities/Category"
@@ -11,7 +11,7 @@ import type { Listing } from "@/domain/entities/Listing"
 import type { Pyme } from "@/domain/entities/Pyme"
 import { marketplaceRepository } from "@/data/repositories/marketplace"
 import { getMyListingsAction } from "@/features/pymes/actions/listingActions"
-import { getPymeByIdAction, updatePymeAction } from "@/features/pymes/actions/pymeActions"
+import { getPymeByIdAction, requestPymeVerificationAction, updatePymeAction } from "@/features/pymes/actions/pymeActions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,7 @@ import { Footer } from "@/shared/components/Footer"
 import { Navbar } from "@/shared/components/Navbar"
 import { SingleImageUploader } from "@/shared/components/SingleImageUploader"
 import { useAuth } from "@/features/auth/hooks/useAuth"
+import { RUT } from "@/domain/value-objects/RUT"
 
 const fulfillmentLabels: Record<Pyme["fulfillment"], string> = {
   local: "Retiro local",
@@ -41,6 +42,8 @@ export default function ProfilePage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isRequestingVerification, setIsRequestingVerification] = useState(false)
+  const [verificationRut, setVerificationRut] = useState("")
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,6 +57,12 @@ export default function ProfilePage() {
     avatarUrl: "",
     bannerUrl: "",
   })
+
+  const verificationLabels: Record<Pyme["verificationStatus"], string> = {
+    unverified: "No verificada",
+    pending: "En trámite",
+    verified: "Verificada",
+  }
 
   const handleLogout = () => {
     logout()
@@ -71,6 +80,37 @@ export default function ProfilePage() {
       toast.error("Error al guardar los cambios")
     }
     setIsSaving(false)
+  }
+
+  const handleRequestVerification = async () => {
+    if (!user?.pymeId) return
+
+    if (!RUT.isValidFormat(verificationRut)) {
+      toast.error("Formato de RUT inválido. Usa 12345678-9 o 12.345.678-9")
+      return
+    }
+
+    const validRut = RUT.create(verificationRut)
+    if (!validRut) {
+      toast.error("El dígito verificador del RUT es incorrecto")
+      return
+    }
+
+    setIsRequestingVerification(true)
+    try {
+      const updatedPyme = await requestPymeVerificationAction(user.pymeId, validRut.toString())
+      if (updatedPyme) {
+        setPyme(updatedPyme)
+        setVerificationRut(validRut.toString())
+        toast.success("Solicitud enviada. Revisaremos tu PYME en SII.")
+      } else {
+        toast.error("No se pudo enviar la solicitud")
+      }
+    } catch (error) {
+      toast.error("Error al solicitar verificación")
+    } finally {
+      setIsRequestingVerification(false)
+    }
   }
 
   useEffect(() => {
@@ -103,6 +143,7 @@ export default function ProfilePage() {
             avatarUrl: pymeData.avatarUrl || "",
             bannerUrl: pymeData.bannerUrl || "",
           })
+          setVerificationRut(pymeData.rut || "")
         }
 
         setListings(myListings)
@@ -192,9 +233,17 @@ export default function ProfilePage() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <h1 className="text-xl sm:text-2xl font-bold truncate">
-                              {pyme.name || "Mi Negocio"}
-                            </h1>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h1 className="text-xl sm:text-2xl font-bold truncate">
+                                {pyme.name || "Mi Negocio"}
+                              </h1>
+                              {pyme.verificationStatus === "verified" && (
+                                <Badge variant="secondary" className="gap-1 bg-emerald-100 text-emerald-800">
+                                  <BadgeCheck className="h-3 w-3" />
+                                  Verificada
+                                </Badge>
+                              )}
+                            </div>
                             {pyme.description && (
                               <p className="text-sm text-muted-foreground line-clamp-2">{pyme.description}</p>
                             )}
@@ -404,6 +453,7 @@ export default function ProfilePage() {
                     )}
                   </CardContent>
                 </Card>
+
               </TabsContent>
             )}
 
@@ -555,6 +605,64 @@ export default function ProfilePage() {
                     </div>
                   </CardContent>
                 </Card>
+                {pyme && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Verificacion SII</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">Estado:</span>
+                        <Badge variant="secondary">{verificationLabels[pyme.verificationStatus]}</Badge>
+                      </div>
+
+                      {pyme.verificationStatus === "unverified" && pyme.verificationNote && (
+                        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                          Comentario del administrador: {pyme.verificationNote}
+                        </div>
+                      )}
+
+                      {pyme.verificationStatus === "unverified" && (
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <Label htmlFor="verification-rut">RUT de la empresa</Label>
+                            <Input
+                              id="verification-rut"
+                              value={verificationRut}
+                              onChange={(e) => setVerificationRut(e.target.value)}
+                              onBlur={() => {
+                                if (verificationRut && RUT.isValidFormat(verificationRut)) {
+                                  setVerificationRut(RUT.normalize(verificationRut))
+                                }
+                              }}
+                              placeholder="12345678-9"
+                            />
+                            <p className="text-xs text-muted-foreground">Usaremos este RUT para validar tu PYME en SII.</p>
+                          </div>
+                          <Button onClick={handleRequestVerification} disabled={isRequestingVerification}>
+                            {isRequestingVerification ? "Enviando..." : "Solicitar verificacion"}
+                          </Button>
+                        </div>
+                      )}
+
+                      {pyme.verificationStatus === "pending" && (
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p>Tu solicitud esta en revision.</p>
+                          {pyme.verificationRequestedAt && (
+                            <p>Fecha solicitud: {new Date(pyme.verificationRequestedAt).toLocaleDateString("es-CL")}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {pyme.verificationStatus === "verified" && (
+                        <div className="flex items-center gap-2 text-sm text-emerald-700">
+                          <BadgeCheck className="h-4 w-4" />
+                          Tu PYME esta verificada en SII.
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
             )}
           </Tabs>

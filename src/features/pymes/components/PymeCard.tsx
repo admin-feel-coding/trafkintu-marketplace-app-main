@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, BadgeCheck } from "lucide-react"
 import type { Pyme } from "@/domain/entities/Pyme"
 
 interface PymeCardProps {
@@ -19,7 +19,15 @@ export function PymeCard({ pyme }: PymeCardProps) {
             <AvatarFallback>{pyme.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-semibold text-lg">{pyme.name}</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-semibold text-lg">{pyme.name}</h3>
+              {pyme.verificationStatus === "verified" && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                  <BadgeCheck className="h-3 w-3" />
+                  Verificada
+                </span>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground line-clamp-1">{pyme.description}</p>
           </div>
         </div>

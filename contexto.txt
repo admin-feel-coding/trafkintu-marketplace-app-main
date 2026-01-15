@@ -365,3 +365,9 @@ Actualizaci�n 2025-12-21:
 - Rutas din�micas listing/pyme marcadas dynamic='force-dynamic' para render en runtime.
 - Estado actual: lint OK; build compila (EPIPE ocasional del entorno).
 
+Actualizacion 2026-01-14:
+- Verificacion SII de pymes: estado unverified/pending/verified, solicitud con RUT de empresa en perfil, rechazo vuelve a unverified con comentario.
+- Admin: nueva pestaña "Verificaciones" con acciones aprobar/rechazar y comentario.
+- Badge de PYME verificada visible en perfiles publicos, cards y detalle listing.
+- BD: tabla pymes agrega rut y campos verification_status, verification_requested_at, verification_verified_at, verification_note (ver bootstrap.sql).
+

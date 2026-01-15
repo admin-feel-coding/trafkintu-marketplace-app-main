@@ -1,6 +1,6 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Clock, Truck } from "lucide-react"
+import { BadgeCheck, MapPin, Clock, Truck } from "lucide-react"
 import type { Pyme } from "@/domain/entities/Pyme"
 
 interface PymeHeaderProps {
@@ -22,7 +22,15 @@ export function PymeHeader({ pyme }: PymeHeaderProps) {
       </Avatar>
 
       <div className="flex-1">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 md:mb-2">{pyme.name}</h1>
+        <div className="flex flex-wrap items-center gap-2 mb-1 md:mb-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{pyme.name}</h1>
+          {pyme.verificationStatus === "verified" && (
+            <Badge variant="secondary" className="gap-1 bg-emerald-100 text-emerald-800">
+              <BadgeCheck className="h-3 w-3" />
+              Verificada
+            </Badge>
+          )}
+        </div>
         <p className="text-muted-foreground mb-3">{pyme.description}</p>
 
         <div className="flex flex-wrap gap-3 text-sm">

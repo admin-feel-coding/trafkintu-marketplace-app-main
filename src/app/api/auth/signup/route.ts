@@ -38,11 +38,13 @@ export async function POST(request: Request) {
       .from("pymes")
       .insert({
         owner_id: data.user.id,
+        rut: body.rut,
         name: body.pymeName || body.displayName,
         description: "",
         email: body.email,
         phone: body.phone || "",
         fulfillment: "both",
+        verification_status: "unverified",
       })
       .select("id")
       .single()

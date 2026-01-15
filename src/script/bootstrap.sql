@@ -25,6 +25,7 @@ end $$;
 create table if not exists pymes (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users(id) on delete cascade,
+  rut text not null,
   name text not null,
   description text not null default '',
   whatsapp text,
@@ -36,6 +37,10 @@ create table if not exists pymes (
   banner_url text,
   avatar_url text,
   fulfillment fulfillment_kind not null default 'both',
+  verification_status text not null default 'unverified' check (verification_status in ('unverified','pending','verified')),
+  verification_requested_at timestamptz,
+  verification_verified_at timestamptz,
+  verification_note text,
   created_at timestamptz not null default now()
 );
 
@@ -79,6 +84,7 @@ create index if not exists idx_pymes_owner_id on pymes(owner_id);
 create index if not exists idx_listings_pyme_id on listings(pyme_id);
 create index if not exists idx_listings_category_id on listings(category_id);
 create index if not exists idx_listing_images_listing_id on listing_images(listing_id);
+create index if not exists idx_pymes_verification_status on pymes(verification_status);
 
 -- Unique constraint: one pyme per user
 create unique index if not exists ux_pymes_owner_id on pymes(owner_id);

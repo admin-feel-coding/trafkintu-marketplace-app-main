@@ -1,6 +1,7 @@
 export interface Pyme {
   id: string
   ownerId: string
+  rut: string
   name: string
   description: string
   whatsapp?: string
@@ -12,4 +13,8 @@ export interface Pyme {
   bannerUrl?: string // Added banner image
   avatarUrl?: string
   fulfillment: "local" | "delivery" | "both"
+  verificationStatus: "unverified" | "pending" | "verified"
+  verificationRequestedAt?: Date
+  verificationVerifiedAt?: Date
+  verificationNote?: string
 }

@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import Image from "next/image"
-import { Clock, Globe, Mail, MapPin, Phone, Search, Truck } from "lucide-react"
+import { BadgeCheck, Clock, Globe, Mail, MapPin, Phone, Search, Truck } from "lucide-react"
 import { toast } from "sonner"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -89,7 +89,15 @@ export function PymePublicProfile({ pyme, listings, categories, allPymes }: Pyme
 
               {/* Info */}
               <div className="flex-1">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 md:mb-2">{pyme.name}</h1>
+                <div className="flex flex-wrap items-center gap-2 mb-1 md:mb-2">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{pyme.name}</h1>
+                  {pyme.verificationStatus === "verified" && (
+                    <Badge variant="secondary" className="gap-1 bg-emerald-100 text-emerald-800">
+                      <BadgeCheck className="h-3 w-3" />
+                      Verificada
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-muted-foreground mb-4">{pyme.description}</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">

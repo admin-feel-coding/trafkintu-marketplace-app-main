@@ -9,7 +9,7 @@ import type { Listing } from "@/domain/entities/Listing"
 import type { Pyme } from "@/domain/entities/Pyme"
 import type { FeaturedRequest } from "@/domain/ports/AdminRepository"
 import { marketplaceRepository } from "@/data/repositories/marketplace"
-import { getAllPymesAction } from "@/features/pymes/actions/pymeActions"
+import { approvePymeVerificationAction, getAllPymesAction, rejectPymeVerificationAction } from "@/features/pymes/actions/pymeActions"
 import {
   getFeaturedRequestsAction,
   approveFeaturedRequestAction,
@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdminStats } from "@/features/admin/components/AdminStats"
 import { FeaturedRequestsTable } from "@/features/admin/components/FeaturedRequestsTable"
 import { ModerationTable } from "@/features/admin/components/ModerationTable"
+import { PymeVerificationTable } from "@/features/admin/components/PymeVerificationTable"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { Footer } from "@/shared/components/Footer"
 import { Navbar } from "@/shared/components/Navbar"
@@ -109,6 +110,32 @@ export default function AdminPage() {
     }
   }
 
+  const handleApproveVerification = async (pymeId: string) => {
+    try {
+      const updated = await approvePymeVerificationAction(pymeId)
+      if (updated) {
+        setPymes(pymes.map((p) => (p.id === pymeId ? updated : p)))
+      }
+      toast.success("PYME verificada")
+    } catch (error) {
+      toast.error("Error al verificar")
+      console.error(error)
+    }
+  }
+
+  const handleRejectVerification = async (pymeId: string, note: string) => {
+    try {
+      const updated = await rejectPymeVerificationAction(pymeId, note)
+      if (updated) {
+        setPymes(pymes.map((p) => (p.id === pymeId ? updated : p)))
+      }
+      toast.success("Solicitud rechazada")
+    } catch (error) {
+      toast.error("Error al rechazar")
+      console.error(error)
+    }
+  }
+
   if (authLoading || isLoading) {
     return (
       <>
@@ -145,6 +172,7 @@ export default function AdminPage() {
             <Tabs defaultValue="requests" className="w-full">
               <TabsList className="w-full sm:w-auto overflow-x-auto flex-nowrap">
                 <TabsTrigger value="requests">Solicitudes Destacado</TabsTrigger>
+                <TabsTrigger value="verifications">Verificaciones</TabsTrigger>
                 <TabsTrigger value="moderation">Moderación</TabsTrigger>
               </TabsList>
 
@@ -159,6 +187,15 @@ export default function AdminPage() {
                 />
               </TabsContent>
 
+
+              <TabsContent value="verifications" className="mt-4 md:mt-6">
+                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Solicitudes de Verificacion</h2>
+                <PymeVerificationTable
+                  pymes={pymes}
+                  onApprove={handleApproveVerification}
+                  onReject={handleRejectVerification}
+                />
+              </TabsContent>
               <TabsContent value="moderation" className="mt-4 md:mt-6">
                 <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Moderación de Publicaciones</h2>
                 <ModerationTable

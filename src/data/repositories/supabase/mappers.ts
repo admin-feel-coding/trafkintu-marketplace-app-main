@@ -35,6 +35,7 @@ export function mapPyme(row: any): Pyme {
   return {
     id: row.id,
     ownerId: row.owner_id,
+    rut: row.rut || "",
     name: row.name,
     description: row.description,
     whatsapp: row.whatsapp,
@@ -46,6 +47,10 @@ export function mapPyme(row: any): Pyme {
     bannerUrl: row.banner_url,
     avatarUrl: row.avatar_url,
     fulfillment: row.fulfillment,
+    verificationStatus: row.verification_status || "unverified",
+    verificationRequestedAt: row.verification_requested_at ? new Date(row.verification_requested_at) : undefined,
+    verificationVerifiedAt: row.verification_verified_at ? new Date(row.verification_verified_at) : undefined,
+    verificationNote: row.verification_note || undefined,
   }
 }
 

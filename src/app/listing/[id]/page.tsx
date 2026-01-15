@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { AlertCircle, ChevronRight, Star } from "lucide-react"
+import { AlertCircle, BadgeCheck, ChevronRight, Star } from "lucide-react"
 
 import { marketplaceRepository } from "@/data/repositories/marketplace"
 import { getPymeByIdAction } from "@/features/pymes/actions/pymeActions"
@@ -76,6 +76,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     )}
                   </div>
                   <span className="text-sm font-medium">{pyme.name || "PYME"}</span>
+                  {pyme.verificationStatus === "verified" && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                      <BadgeCheck className="h-3 w-3" />
+                      Verificada
+                    </span>
+                  )}
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
