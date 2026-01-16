@@ -8,6 +8,8 @@ export interface Listing {
   price: Price
   isActive: boolean
   isFeatured: boolean
+  featuredAt?: Date
+  featuredUntil?: Date
   createdAt: Date
   images: string[]
 }

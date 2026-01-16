@@ -104,7 +104,10 @@ export function ListingFormDialog({ open, onOpenChange, listing, categories, use
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Tipo</Label>
-              <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v as any })}>
+              <Select
+                value={formData.type}
+                onValueChange={(v) => setFormData({ ...formData, type: v as ListingFormData["type"] })}
+              >
                 <SelectTrigger id="type">
                   <SelectValue />
                 </SelectTrigger>
@@ -148,7 +151,7 @@ export function ListingFormDialog({ open, onOpenChange, listing, categories, use
               <Label htmlFor="priceKind">Tipo de precio</Label>
               <Select
                 value={formData.priceKind}
-                onValueChange={(v) => setFormData({ ...formData, priceKind: v as any })}
+                onValueChange={(v) => setFormData({ ...formData, priceKind: v as ListingFormData["priceKind"] })}
               >
                 <SelectTrigger id="priceKind">
                   <SelectValue />
@@ -164,14 +167,14 @@ export function ListingFormDialog({ open, onOpenChange, listing, categories, use
             {formData.priceKind !== "quote" && (
               <div className="space-y-2">
                 <Label htmlFor="priceAmount">Monto (CLP)</Label>
-                <Input
-                  id="priceAmount"
-                  type="number"
-                  min="0"
-                  value={formData.priceAmount || ""}
-                  onChange={(e) => setFormData({ ...formData, priceAmount: Number(e.target.value) || undefined })}
-                  required={formData.priceKind !== "quote"}
-                />
+                  <Input
+                    id="priceAmount"
+                    type="number"
+                    min="0"
+                    value={formData.priceAmount || ""}
+                    onChange={(e) => setFormData({ ...formData, priceAmount: Number(e.target.value) || undefined })}
+                    required
+                  />
               </div>
             )}
           </div>

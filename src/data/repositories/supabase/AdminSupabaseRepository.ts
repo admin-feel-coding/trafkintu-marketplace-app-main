@@ -1,6 +1,24 @@
-import type { AdminRepository } from "@/domain/ports/AdminRepository"
+import type { AdminRepository, FeaturedRequest } from "@/domain/ports/AdminRepository"
 import { supabaseAdmin } from "@/shared/lib/supabase/admin"
 import { supabaseBrowser } from "@/shared/lib/supabase/browser"
+
+type FeaturedRequestRow = {
+  id: string
+  listing_id: string
+  pyme_id: string
+  requested_at: string
+  status: FeaturedRequest["status"]
+  plan_id: string | null
+  plan_days: number | null
+  plan_price_clp: number | null
+  payment_status: FeaturedRequest["paymentStatus"] | null
+  payment_provider: string | null
+  payment_provider_id: string | null
+  payment_preference_id: string | null
+  payment_init_point: string | null
+  featured_at: string | null
+  featured_until: string | null
+}
 
 export class AdminSupabaseRepository implements AdminRepository {
   async getFeaturedRequests() {
@@ -8,12 +26,22 @@ export class AdminSupabaseRepository implements AdminRepository {
     if (!supabase) return []
     const { data, error } = await supabase.from("featured_requests").select("*")
     if (error || !data) return []
-    return data.map((r) => ({
+    return (data as FeaturedRequestRow[]).map((r) => ({
       id: r.id,
       listingId: r.listing_id,
       pymeId: r.pyme_id,
       requestedAt: new Date(r.requested_at),
       status: r.status,
+      planId: r.plan_id,
+      planDays: r.plan_days,
+      planPriceClp: r.plan_price_clp,
+      paymentStatus: r.payment_status ?? undefined,
+      paymentProvider: r.payment_provider,
+      paymentProviderId: r.payment_provider_id,
+      paymentPreferenceId: r.payment_preference_id,
+      paymentInitPoint: r.payment_init_point,
+      featuredAt: r.featured_at ? new Date(r.featured_at) : null,
+      featuredUntil: r.featured_until ? new Date(r.featured_until) : null,
     }))
   }
 

@@ -8,7 +8,7 @@ import { Check, X } from "lucide-react"
 import type { FeaturedRequest } from "@/domain/ports/AdminRepository"
 import type { Listing } from "@/domain/entities/Listing"
 import type { Pyme } from "@/domain/entities/Pyme"
-import { formatDate } from "@/shared/lib/format"
+import { formatDate, formatPrice } from "@/shared/lib/format"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { MobileTableCard, CardRow, CardActions } from "@/shared/components/MobileTableCard"
 
@@ -21,15 +21,36 @@ interface FeaturedRequestsTableProps {
 }
 
 export function FeaturedRequestsTable({ requests, listings, pymes, onApprove, onReject }: FeaturedRequestsTableProps) {
-  const pendingRequests = requests.filter((r) => r.status === "pending")
   const isMobile = useIsMobile()
+  const sortedRequests = [...requests].sort(
+    (a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime()
+  )
+
+  const getStatusLabel = (status: FeaturedRequest["status"]) => {
+    if (status === "approved") return "Aprobada"
+    if (status === "rejected") return "Rechazada"
+    if (status === "expired") return "Expirada"
+    return "Pendiente"
+  }
+
+  const getPaymentLabel = (status?: FeaturedRequest["paymentStatus"]) => {
+    if (!status || status === "pending") return "Pendiente"
+    if (status === "approved") return "Aprobado"
+    if (status === "rejected") return "Rechazado"
+    if (status === "in_process") return "En proceso"
+    if (status === "cancelled") return "Cancelado"
+    if (status === "refunded") return "Reembolsado"
+    if (status === "charged_back") return "Contracargo"
+    if (status === "expired") return "Expirado"
+    return status
+  }
 
   // Empty state
-  if (pendingRequests.length === 0) {
+  if (sortedRequests.length === 0) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          No hay solicitudes pendientes
+          No hay solicitudes
         </CardContent>
       </Card>
     )
@@ -39,9 +60,11 @@ export function FeaturedRequestsTable({ requests, listings, pymes, onApprove, on
   if (isMobile) {
     return (
       <div className="space-y-3">
-        {pendingRequests.map((request) => {
+        {sortedRequests.map((request) => {
           const listing = listings.find((l) => l.id === request.listingId)
           const pyme = pymes.find((p) => p.id === request.pymeId)
+          const planLabel = request.planDays ? `${request.planDays} dias` : "Sin plan"
+          const planPrice = request.planPriceClp ? formatPrice(request.planPriceClp) : "-"
           return (
             <MobileTableCard key={request.id}>
               <div className="flex items-start justify-between mb-2">
@@ -58,14 +81,13 @@ export function FeaturedRequestsTable({ requests, listings, pymes, onApprove, on
                         : "secondary"
                   }
                 >
-                  {request.status === "approved"
-                    ? "Aprobada"
-                    : request.status === "rejected"
-                      ? "Rechazada"
-                      : "Pendiente"}
+                  {getStatusLabel(request.status)}
                 </Badge>
               </div>
               <CardRow label="Fecha solicitud" value={formatDate(request.requestedAt)} />
+              <CardRow label="Plan" value={`${planLabel} · ${planPrice}`} />
+              <CardRow label="Pago" value={getPaymentLabel(request.paymentStatus)} />
+              {request.featuredUntil && <CardRow label="Vence" value={formatDate(request.featuredUntil)} />}
               {request.status === "pending" && (
                 <CardActions>
                   <Button size="sm" onClick={() => onApprove(request.id)} className="flex-1">
@@ -94,20 +116,27 @@ export function FeaturedRequestsTable({ requests, listings, pymes, onApprove, on
             <TableHead>PYME</TableHead>
             <TableHead>Publicación</TableHead>
             <TableHead>Fecha Solicitud</TableHead>
+            <TableHead>Plan</TableHead>
+            <TableHead>Pago</TableHead>
             <TableHead>Estado</TableHead>
+            <TableHead>Vence</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pendingRequests.map((request) => {
+          {sortedRequests.map((request) => {
             const listing = listings.find((l) => l.id === request.listingId)
             const pyme = pymes.find((p) => p.id === request.pymeId)
+            const planLabel = request.planDays ? `${request.planDays} dias` : "Sin plan"
+            const planPrice = request.planPriceClp ? formatPrice(request.planPriceClp) : "-"
 
             return (
               <TableRow key={request.id}>
                 <TableCell className="font-medium">{pyme?.name || "-"}</TableCell>
                 <TableCell>{listing?.title || "-"}</TableCell>
                 <TableCell>{formatDate(request.requestedAt)}</TableCell>
+                <TableCell>{`${planLabel} · ${planPrice}`}</TableCell>
+                <TableCell>{getPaymentLabel(request.paymentStatus)}</TableCell>
                 <TableCell>
                   <Badge
                     variant={
@@ -118,13 +147,10 @@ export function FeaturedRequestsTable({ requests, listings, pymes, onApprove, on
                           : "secondary"
                     }
                   >
-                    {request.status === "approved"
-                      ? "Aprobada"
-                      : request.status === "rejected"
-                        ? "Rechazada"
-                        : "Pendiente"}
+                    {getStatusLabel(request.status)}
                   </Badge>
                 </TableCell>
+                <TableCell>{request.featuredUntil ? formatDate(request.featuredUntil) : "-"}</TableCell>
                 <TableCell className="text-right">
                   {request.status === "pending" && (
                     <div className="flex justify-end gap-2">

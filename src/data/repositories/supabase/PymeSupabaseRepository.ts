@@ -187,8 +187,8 @@ export class PymeSupabaseRepository implements PymeRepository {
         address: data.address,
         hours: data.hours,
         website: data.website,
-        avatar_url: (data as any).avatarUrl,
-        banner_url: (data as any).bannerUrl,
+        avatar_url: data.avatarUrl,
+        banner_url: data.bannerUrl,
       })
       .eq("id", pymeId)
       .select("*")

@@ -26,6 +26,8 @@ export function mapListing(row: any): Listing {
     price,
     isActive: row.is_active,
     isFeatured: row.is_featured,
+    featuredAt: row.featured_at ? new Date(row.featured_at) : undefined,
+    featuredUntil: row.featured_until ? new Date(row.featured_until) : undefined,
     createdAt: new Date(row.created_at),
     images,
   }

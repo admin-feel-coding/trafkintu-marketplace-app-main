@@ -25,6 +25,7 @@ import { Navbar } from "@/shared/components/Navbar"
 import { SingleImageUploader } from "@/shared/components/SingleImageUploader"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { RUT } from "@/domain/value-objects/RUT"
+import type { User as AuthUser } from "@/domain/ports/AuthRepository"
 
 const fulfillmentLabels: Record<Pyme["fulfillment"], string> = {
   local: "Retiro local",
@@ -115,17 +116,18 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (authLoading) return
-    if (!user) {
+    const currentUser = user
+    if (!currentUser) {
       router.push("/auth")
       return
     }
 
-    async function loadData() {
+    async function loadData(profileUser: AuthUser) {
       setLoading(true)
-      if (user.role === "pyme" && user.pymeId) {
+      if (profileUser.role === "pyme" && profileUser.pymeId) {
         const [pymeData, myListings, loadedCategories] = await Promise.all([
-          getPymeByIdAction(user.pymeId),
-          getMyListingsAction(user.pymeId),
+          getPymeByIdAction(profileUser.pymeId),
+          getMyListingsAction(profileUser.pymeId),
           marketplaceRepository.getCategories(),
         ])
 
@@ -134,7 +136,7 @@ export default function ProfilePage() {
           setFormData({
             name: pymeData.name,
             description: pymeData.description || "",
-            email: pymeData.email || user.email,
+            email: pymeData.email || profileUser.email,
             phone: pymeData.phone,
             whatsapp: pymeData.whatsapp || "",
             address: pymeData.address || "",
@@ -153,7 +155,7 @@ export default function ProfilePage() {
       setLoading(false)
     }
 
-    loadData()
+    loadData(currentUser)
   }, [user, authLoading, router])
 
   if (authLoading || loading) {

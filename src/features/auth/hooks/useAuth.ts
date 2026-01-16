@@ -36,6 +36,8 @@ export function useAuth() {
             id: "",
             email: "",
             role: role as "user" | "pyme" | "admin",
+            rut: "",
+            displayName: "",
             pymeId: pymeId || undefined,
           })
         }

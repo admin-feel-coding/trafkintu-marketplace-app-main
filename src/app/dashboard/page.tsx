@@ -13,10 +13,20 @@ import { DashboardStats } from "@/features/pymes/components/DashboardStats"
 import { ListingFormDialog, type ListingFormData } from "@/features/pymes/components/ListingFormDialog"
 import { ListingTable } from "@/features/pymes/components/ListingTable"
 import { useAuth } from "@/features/auth/hooks/useAuth"
-import { createListingAction, getMyListingsAction, requestFeaturedAction, toggleActiveAction, updateListingAction } from "@/features/pymes/actions/listingActions"
+import { createListingAction, getMyListingsAction, toggleActiveAction, updateListingAction } from "@/features/pymes/actions/listingActions"
 import { Footer } from "@/shared/components/Footer"
 import { Navbar } from "@/shared/components/Navbar"
 import { PageHeader } from "@/shared/components/PageHeader"
+import type { FeaturedPlan } from "@/domain/entities/FeaturedPlan"
+import { supabaseBrowser } from "@/shared/lib/supabase/browser"
+
+type FeaturedPlanRow = {
+  id: string
+  name: string
+  days: number
+  price_clp: number | string
+  is_active: boolean
+}
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth()
@@ -29,6 +39,9 @@ export default function DashboardPage() {
   const [editingListing, setEditingListing] = useState<Listing | undefined>(undefined)
   const [showFeaturedDialog, setShowFeaturedDialog] = useState(false)
   const [requestingFeaturedId, setRequestingFeaturedId] = useState<string | null>(null)
+  const [featuredPlans, setFeaturedPlans] = useState<FeaturedPlan[]>([])
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false)
 
   // Auth is handled by middleware - no redirect needed here
 
@@ -45,6 +58,29 @@ export default function DashboardPage() {
 
         setListings(loadedListings)
         setCategories(loadedCategories)
+
+        const supabase = supabaseBrowser()
+        if (supabase) {
+          const { data: plans } = await supabase
+            .from("featured_plans")
+            .select("*")
+            .eq("is_active", true)
+            .order("days", { ascending: true })
+
+          if (plans) {
+            const mappedPlans = (plans as FeaturedPlanRow[]).map((plan) => ({
+              id: plan.id,
+              name: plan.name,
+              days: plan.days,
+              priceClp: Number(plan.price_clp),
+              isActive: plan.is_active,
+            }))
+            setFeaturedPlans(mappedPlans)
+            if (!selectedPlanId && mappedPlans.length > 0) {
+              setSelectedPlanId(mappedPlans[0].id)
+            }
+          }
+        }
       } finally {
         setIsLoading(false)
       }
@@ -120,19 +156,42 @@ export default function DashboardPage() {
 
   const handleRequestFeatured = async (listingId: string) => {
     setRequestingFeaturedId(listingId)
+    if (!selectedPlanId && featuredPlans.length > 0) {
+      setSelectedPlanId(featuredPlans[0].id)
+    }
     setShowFeaturedDialog(true)
   }
 
   const confirmFeaturedRequest = async () => {
-    if (!requestingFeaturedId) return
+    if (!requestingFeaturedId || !selectedPlanId) return
 
+    const supabase = supabaseBrowser()
+    if (!supabase) {
+      toast.error("Supabase no configurado")
+      return
+    }
+
+    setIsCreatingPayment(true)
     try {
-      await requestFeaturedAction(requestingFeaturedId)
-      toast.success("Solicitud enviada. Te contactaremos pronto.")
+      const { data, error } = await supabase.functions.invoke("create-featured-payment", {
+        body: {
+          listingId: requestingFeaturedId,
+          planId: selectedPlanId,
+          returnBaseUrl: window.location.origin,
+        },
+      })
+
+      if (error || !data?.initPoint) {
+        throw new Error(error?.message || "Error creando pago")
+      }
+
       setRequestingFeaturedId(null)
+      window.location.href = data.initPoint
     } catch (error) {
-      toast.error("Error al enviar solicitud")
+      toast.error("Error al crear el pago")
       console.error(error)
+    } finally {
+      setIsCreatingPayment(false)
     }
   }
 
@@ -205,7 +264,15 @@ export default function DashboardPage() {
         onSubmit={editingListing ? handleUpdateListing : handleCreateListing}
       />
 
-      <FeaturedRequestDialog open={showFeaturedDialog} onOpenChange={setShowFeaturedDialog} onConfirm={confirmFeaturedRequest} />
+      <FeaturedRequestDialog
+        open={showFeaturedDialog}
+        onOpenChange={setShowFeaturedDialog}
+        onConfirm={confirmFeaturedRequest}
+        plans={featuredPlans}
+        selectedPlanId={selectedPlanId}
+        onSelectPlan={setSelectedPlanId}
+        isSubmitting={isCreatingPayment}
+      />
     </>
   )
 }

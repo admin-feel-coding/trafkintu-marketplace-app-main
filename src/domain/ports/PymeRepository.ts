@@ -31,4 +31,7 @@ export interface UpdatePymeData {
   phone: string
   address?: string
   hours?: string
+  website?: string
+  avatarUrl?: string
+  bannerUrl?: string
 }

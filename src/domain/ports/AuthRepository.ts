@@ -21,4 +21,5 @@ export interface RegisterData {
   rut: string
   displayName: string
   pymeName?: string
+  phone?: string
 }
